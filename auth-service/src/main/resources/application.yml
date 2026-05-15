@@ -1,9 +1,25 @@
 spring:
   application:
     name: auth-service
+  datasource:
+    url: ${AUTH_DB_URL:jdbc:postgresql://localhost:5432/shopgrid_auth}
+    username: ${AUTH_DB_USERNAME:shopgrid}
+    password: ${AUTH_DB_PASSWORD:shopgrid}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
 
 server:
   port: 8081
+
+security:
+  jwt:
+    secret: ${JWT_SECRET:shopgrid-development-secret-key-change-before-production-please-keep-it-long}
+    expiration: ${JWT_EXPIRATION:PT1H}
 
 management:
   endpoints:
