@@ -38,6 +38,7 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final UserServiceClient userServiceClient;
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
@@ -55,7 +56,9 @@ public class AuthService {
                 Role.USER,
                 AccountStatus.ACTIVE
         );
-        return createAuthResponse(userRepository.save(user));
+        AuthUser saved = userRepository.save(user);
+        userServiceClient.createUser(saved.getFirstName(), saved.getLastName(), saved.getEmail());
+        return createAuthResponse(saved);
     }
 
     @Transactional
