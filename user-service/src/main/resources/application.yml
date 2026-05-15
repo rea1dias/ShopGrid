@@ -1,12 +1,16 @@
 spring:
   application:
     name: user-service
-
+  datasource:
+    url: ${USER_DB_URL:jdbc:postgresql://localhost:5432/shopgrid_user}
+    username: ${USER_DB_USERNAME:shopgrid}
+    password: ${USER_DB_PASSWORD:shopgrid}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
 server:
   port: 8082
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info
