@@ -70,6 +70,14 @@ public class AuthService {
         return createAuthResponse(user);
     }
 
+    @Transactional(readOnly = true)
+    public AuthResponse me(String email, String token) {
+        AuthUser user = userRepository.findByEmail(normalizeEmail(email))
+                .orElseThrow(() -> new IllegalStateException("Authenticated user was not found"));
+
+        return AuthResponse.from(user, token, jwtService.extractExpiration(token));
+    }
+
     private AuthResponse createAuthResponse(AuthUser user) {
         Instant expiresAt = jwtService.expiresAt();
         String token = jwtService.generateToken(user, expiresAt);

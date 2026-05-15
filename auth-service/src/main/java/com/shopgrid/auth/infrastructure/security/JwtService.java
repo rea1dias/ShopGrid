@@ -45,6 +45,10 @@ public class JwtService {
         return subject.equals(userDetails.getUsername()) && parseClaims(token).getExpiration().after(new Date());
     }
 
+    public Instant extractExpiration(String token) {
+        return parseClaims(token).getExpiration().toInstant();
+    }
+
     public Instant expiresAt() {
         return Instant.now().plus(properties.expiration());
     }
