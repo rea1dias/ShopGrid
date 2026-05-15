@@ -19,7 +19,8 @@ server:
 security:
   jwt:
     secret: ${JWT_SECRET:shopgrid-development-secret-key-change-before-production-please-keep-it-long}
-    expiration: ${JWT_EXPIRATION:PT1H}
+    access-token-ttl: ${JWT_ACCESS_TOKEN_TTL:PT1H}
+    refresh-token-ttl: ${JWT_REFRESH_TOKEN_TTL:P14D}
 
 management:
   endpoints:

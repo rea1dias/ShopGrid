@@ -18,5 +18,25 @@ Content-Type: application/json
   "password": "password123"
 }
 
+### Refresh tokens
+POST http://localhost:8081/api/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "paste-refresh-token-here"
+}
+
+### Logout refresh token
+POST http://localhost:8081/api/auth/logout
+Content-Type: application/json
+
+{
+  "refreshToken": "paste-refresh-token-here"
+}
+
+### Current user
+GET http://localhost:8081/api/auth/me
+Authorization: Bearer paste-access-token-here
+
 ### Health
 GET http://localhost:8081/actuator/health
