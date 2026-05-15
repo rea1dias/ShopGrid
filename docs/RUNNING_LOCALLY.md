@@ -55,6 +55,9 @@ Auth endpoints:
 ```text
 POST http://localhost:8081/api/auth/register
 POST http://localhost:8081/api/auth/login
+POST http://localhost:8081/api/auth/refresh
+POST http://localhost:8081/api/auth/logout
+GET  http://localhost:8081/api/auth/me
 GET  http://localhost:8081/actuator/health
 ```
 

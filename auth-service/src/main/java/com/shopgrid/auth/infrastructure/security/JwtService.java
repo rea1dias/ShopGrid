@@ -23,6 +23,10 @@ public class JwtService {
         this.signingKey = Keys.hmacShaKeyFor(properties.secret().getBytes(StandardCharsets.UTF_8));
     }
 
+    public String generateToken(AuthUser user) {
+        return generateToken(user, expiresAt());
+    }
+
     public String generateToken(AuthUser user, Instant expiresAt) {
         Instant now = Instant.now();
 
@@ -50,7 +54,11 @@ public class JwtService {
     }
 
     public Instant expiresAt() {
-        return Instant.now().plus(properties.expiration());
+        return Instant.now().plus(properties.accessTokenTtl());
+    }
+
+    public Instant refreshTokenExpiresAt() {
+        return Instant.now().plus(properties.refreshTokenTtl());
     }
 
     private Claims parseClaims(String token) {

@@ -1,6 +1,7 @@
 package com.shopgrid.auth.presentation.exception;
 
 import com.shopgrid.auth.application.EmailAlreadyUsedException;
+import com.shopgrid.auth.application.UnauthorizedException;
 import com.shopgrid.auth.presentation.dto.response.ErrorResponse;
 import com.shopgrid.auth.presentation.dto.response.ValidationErrorResponse;
 import org.springframework.http.HttpStatus;
@@ -30,6 +31,12 @@ public class ApiExceptionHandler {
         return new ErrorResponse("BAD_CREDENTIALS", "Invalid email or password", Instant.now());
     }
 
+    @ExceptionHandler(UnauthorizedException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public ErrorResponse handleUnauthorized(UnauthorizedException exception) {
+        return new ErrorResponse("UNAUTHORIZED", exception.getMessage(), Instant.now());
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ValidationErrorResponse handleValidation(MethodArgumentNotValidException exception) {
@@ -41,7 +48,6 @@ public class ApiExceptionHandler {
                         FieldError::getDefaultMessage,
                         (first, second) -> first
                 ));
-
         return new ValidationErrorResponse(
                 "VALIDATION_ERROR",
                 "Request validation failed",
