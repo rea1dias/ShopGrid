@@ -3,17 +3,23 @@ package com.shopgrid.user.service.impl;
 import com.shopgrid.user.client.AuthServiceClient;
 import com.shopgrid.user.config.RestClientConfig;
 import com.shopgrid.user.domain.User;
+import com.shopgrid.user.domain.model.AccountStatus;
 import com.shopgrid.user.dto.request.UpdateUserRequest;
 import com.shopgrid.user.dto.request.UserRequest;
 import com.shopgrid.user.dto.response.UserResponse;
 import com.shopgrid.user.exception.NotFoundException;
 import com.shopgrid.user.mapper.UserMapper;
-import com.shopgrid.user.repo.AddressRepository;
 import com.shopgrid.user.repo.UserRepository;
 import com.shopgrid.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -21,7 +27,6 @@ import org.springframework.stereotype.Service;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
-    private final AddressRepository addressRepository;
     private final UserMapper userMapper;
     private final RestClientConfig restClient;
     private final AuthServiceClient authServiceClient;
@@ -34,14 +39,13 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserResponse get(String email) {
-        log.info("Looking for user with email: {}", email);
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new NotFoundException("User not found"));
-        log.info("User found: {}", user.getId());
         return userMapper.toResponse(user);
     }
 
     @Override
+    @Transactional
     public UserResponse update(String email, UpdateUserRequest request) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new NotFoundException("User not found"));
@@ -52,7 +56,27 @@ public class UserServiceImpl implements UserService {
         return userMapper.toResponse(userRepository.save(user));
     }
 
+    @Override
+    @PreAuthorize("hasRole('ADMIN')")
+    public UserResponse getById(UUID id) {
+        return userMapper.toResponse(
+                userRepository.findById(id)
+                        .orElseThrow(() -> new NotFoundException("User not found")));
+    }
 
+    @Override
+    @PreAuthorize("hasRole('ADMIN')")
+    public Page<UserResponse> getAll(Pageable pageable) {
+        return userRepository.findAll(pageable)
+                .map(userMapper::toResponse);
+    }
 
-
+    @Override
+    @PreAuthorize("hasRole('ADMIN')")
+    @Transactional
+    public void updateStatus(UUID id, AccountStatus status) {
+        User user = userRepository.findById(id).orElseThrow(() -> new NotFoundException("User not found"));
+        log.info("User found: {}", user.getId());
+        user.setStatus(status);
+    }
 }

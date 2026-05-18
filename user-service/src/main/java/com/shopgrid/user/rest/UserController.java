@@ -1,13 +1,19 @@
 package com.shopgrid.user.rest;
 
+import com.shopgrid.user.domain.model.AccountStatus;
 import com.shopgrid.user.dto.request.UpdateUserRequest;
 import com.shopgrid.user.dto.request.UserRequest;
 import com.shopgrid.user.dto.response.UserResponse;
 import com.shopgrid.user.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/users/internal")
@@ -32,6 +38,26 @@ public class UserController {
     public ResponseEntity<UserResponse> update(@RequestHeader("X-User-Email") String email,
                                                @RequestBody UpdateUserRequest request) {
         return ResponseEntity.ok(userService.update(email, request));
+    }
+
+    @GetMapping("/{id}")
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseEntity<UserResponse> getById(@PathVariable UUID id) {
+        return ResponseEntity.ok().body(userService.getById(id));
+    }
+
+    @GetMapping("/get")
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseEntity<Page<UserResponse>> get(Pageable pageable) {
+        return ResponseEntity.ok().body(userService.getAll(pageable));
+    }
+
+    @PutMapping("/{id}/status")
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseEntity<Void> updateStatus(@PathVariable UUID id,
+                                              @RequestParam AccountStatus status) {
+        userService.updateStatus(id, status);
+        return ResponseEntity.noContent().build();
     }
 
 }
