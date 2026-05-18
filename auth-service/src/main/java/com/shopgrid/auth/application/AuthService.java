@@ -10,6 +10,7 @@ import com.shopgrid.auth.infrastructure.security.JwtService;
 import com.shopgrid.auth.presentation.dto.request.LoginRequest;
 import com.shopgrid.auth.presentation.dto.request.RefreshTokenRequest;
 import com.shopgrid.auth.presentation.dto.request.RegisterRequest;
+import com.shopgrid.auth.presentation.dto.request.UpdateRequest;
 import com.shopgrid.auth.presentation.dto.response.AuthResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -39,6 +40,7 @@ public class AuthService {
     private final JwtService jwtService;
     private final RefreshTokenRepository refreshTokenRepository;
     private final UserServiceClient userServiceClient;
+    private final AuthUserRepository authUserRepository;
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
@@ -116,6 +118,14 @@ public class AuthService {
         refreshTokenRepository.findByTokenHash(tokenHash)
                 .filter(token -> token.isActive(Instant.now()))
                 .ifPresent(token -> token.revoke(Instant.now()));
+    }
+
+    @Transactional
+    public void update(UpdateRequest request) {
+        AuthUser user = authUserRepository.findByEmail(request.email())
+                .orElseThrow(() -> new NotFoundException("Authenticated user was not found"));
+        user.setFirstName(request.firstName());
+        user.setLastName(request.lastName());
     }
 
     private String normalizeEmail(String email) {

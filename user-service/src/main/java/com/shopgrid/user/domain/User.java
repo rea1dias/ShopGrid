@@ -41,7 +41,7 @@ public class User {
     @Column(nullable = false, length = 40)
     private AccountStatus status;
 
-    @Column(length = 11)
+    @Column(length = 20)
     private String phoneNumber;
 
     @CreationTimestamp
