@@ -4,6 +4,7 @@ import com.shopgrid.auth.application.AuthService;
 import com.shopgrid.auth.presentation.dto.request.LoginRequest;
 import com.shopgrid.auth.presentation.dto.request.RefreshTokenRequest;
 import com.shopgrid.auth.presentation.dto.request.RegisterRequest;
+import com.shopgrid.auth.presentation.dto.request.UpdateRequest;
 import com.shopgrid.auth.presentation.dto.response.AuthResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +33,11 @@ public class AuthController {
     @PostMapping("/refresh")
     public AuthResponse refresh(@Valid @RequestBody RefreshTokenRequest request) {
         return authService.refreshToken(request);
+    }
+
+    @PutMapping("/internal/update")
+    public void update(@Valid @RequestBody UpdateRequest request) {
+        authService.update(request);
     }
 
     @PostMapping("/logout")
