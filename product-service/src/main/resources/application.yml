@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: product-service
+  datasource:
+    url: ${PRODUCT_DB_URL:jdbc:postgresql://localhost:5432/shopgrid_product}
+    username: ${PRODUCT_DB_USERNAME:shopgrid}
+    password: ${PRODUCT_DB_PASSWORD:shopgrid}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+server:
+  port: 8083
