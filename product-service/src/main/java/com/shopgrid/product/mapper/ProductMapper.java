@@ -2,9 +2,11 @@ package com.shopgrid.product.mapper;
 
 import com.shopgrid.product.domain.dto.request.ProductRequest;
 import com.shopgrid.product.domain.dto.response.ProductResponse;
+import com.shopgrid.product.domain.dto.response.UpdateProductRequest;
 import com.shopgrid.product.domain.entity.Product;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
 
 @Mapper(componentModel = "spring")
 public interface ProductMapper {
@@ -18,5 +20,10 @@ public interface ProductMapper {
 
     ProductResponse toResponse(Product product);
 
-
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "sku", ignore = true)
+    @Mapping(target = "sellerId", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "categories", ignore = true)
+    void updateEntity(UpdateProductRequest request, @MappingTarget Product product);
 }
