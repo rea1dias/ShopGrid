@@ -17,5 +17,4 @@ public interface UserService {
     UserResponse getById(UUID id);
     Page<UserResponse> getAll(Pageable pageable);
     void updateStatus(UUID id, AccountStatus status);
-
 }
