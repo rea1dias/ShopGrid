@@ -1,5 +1,6 @@
 package com.shopgrid.product.rest;
 
+import com.shopgrid.product.domain.dto.request.ProductFilterRequest;
 import com.shopgrid.product.domain.dto.request.ProductRequest;
 import com.shopgrid.product.domain.dto.response.ProductResponse;
 import com.shopgrid.product.domain.dto.response.UpdateProductRequest;
@@ -9,16 +10,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -54,5 +48,18 @@ public class ProductController {
             @RequestHeader("X-User-Id") UUID sellerId
     ) {
         return ResponseEntity.ok(productService.update(request, id, sellerId));
+    }
+
+    @DeleteMapping("/seller/{id}")
+    public ResponseEntity<Void> delete(@PathVariable UUID id,
+                                       @RequestHeader("X-User-Id") UUID sellerId) {
+        productService.delete(id, sellerId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/filter")
+    public ResponseEntity<Page<ProductResponse>> getProducts(@RequestBody ProductFilterRequest request,
+                                                             Pageable pageable){
+        return ResponseEntity.ok(productService.getProductsByFilter(request, pageable));
     }
 }
