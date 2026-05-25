@@ -79,4 +79,18 @@ public class UserServiceImpl implements UserService {
         log.info("User found: {}", user.getId());
         user.setStatus(status);
     }
+
+    @Override
+    @PreAuthorize("hasRole('ADMIN')")
+    @Transactional
+    public void block(UUID id, String token) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("User not found"));
+        if (user.getStatus() == AccountStatus.BLOCKED) {
+            return;
+        }
+        user.setStatus(AccountStatus.BLOCKED);
+        log.info("User status: {}", user.getStatus().toString());
+        authServiceClient.blockUser(id, token);
+    }
 }

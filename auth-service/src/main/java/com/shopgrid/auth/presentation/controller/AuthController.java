@@ -12,6 +12,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.UUID;
+
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
@@ -51,4 +53,8 @@ public class AuthController {
         String token = authHeader.substring("Bearer ".length());
         return authService.me(authentication.getName(), token);
     }
+
+    @PostMapping("/block/{id}")
+    public void block(@PathVariable UUID id) {authService.block(id);}
+
 }

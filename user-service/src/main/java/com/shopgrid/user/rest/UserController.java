@@ -1,11 +1,14 @@
 package com.shopgrid.user.rest;
 
 import com.shopgrid.user.domain.model.AccountStatus;
+import com.shopgrid.user.domain.model.Role;
 import com.shopgrid.user.dto.request.UpdateUserRequest;
 import com.shopgrid.user.dto.request.UserRequest;
 import com.shopgrid.user.dto.response.UserResponse;
 import com.shopgrid.user.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -19,6 +22,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class UserController {
 
+    private static final Logger log = LoggerFactory.getLogger(UserController.class);
     private final UserService userService;
 
     @PostMapping("/create")
@@ -56,6 +60,14 @@ public class UserController {
     public ResponseEntity<Void> updateStatus(@PathVariable UUID id,
                                               @RequestParam AccountStatus status) {
         userService.updateStatus(id, status);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/block/{id}")
+    public ResponseEntity<Void> block(@PathVariable UUID id,
+                                      @RequestHeader String token) {
+        log.info("Blocking user {}", id);
+        userService.block(id, token);
         return ResponseEntity.noContent().build();
     }
 
