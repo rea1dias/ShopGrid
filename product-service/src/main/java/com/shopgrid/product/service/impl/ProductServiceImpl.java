@@ -15,9 +15,7 @@ import com.shopgrid.product.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -35,7 +33,6 @@ public class ProductServiceImpl implements ProductService {
     private final ProductRepository productRepository;
     private final ProductMapper productMapper;
     private final CategoryRepository categoryRepository;
-    private ProductSpecification productSpecification;
 
     @Override
     @PreAuthorize("hasRole('SELLER') or hasRole('ADMIN')")
@@ -59,6 +56,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @Transactional
     public ProductResponse findById(UUID id) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Product not found"));
@@ -100,4 +98,6 @@ public class ProductServiceImpl implements ProductService {
         Page<Product> products = productRepository.findAll(spec, pageable);
         return products.map(productMapper::toResponse);
     }
+
+
 }

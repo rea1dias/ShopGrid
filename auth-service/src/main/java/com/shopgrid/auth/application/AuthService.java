@@ -13,6 +13,7 @@ import com.shopgrid.auth.presentation.dto.request.RegisterRequest;
 import com.shopgrid.auth.presentation.dto.request.UpdateRequest;
 import com.shopgrid.auth.presentation.dto.response.AuthResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -26,6 +27,7 @@ import java.security.SecureRandom;
 import java.time.Instant;
 import java.util.Base64;
 import java.util.Locale;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -73,7 +75,9 @@ public class AuthService {
 
         AuthUser user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalStateException("Authenticated user was not found"));
-
+        if (user.getStatus().equals(AccountStatus.BLOCKED)) {
+            throw new AccessDeniedException("User is blocked");
+        }
         return createAuthResponse(user);
     }
 
@@ -126,6 +130,13 @@ public class AuthService {
                 .orElseThrow(() -> new NotFoundException("Authenticated user was not found"));
         user.setFirstName(request.firstName());
         user.setLastName(request.lastName());
+    }
+
+    @Transactional
+    public void block(UUID id) {
+        AuthUser user = authUserRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Authenticated user was not found"));
+        user.setStatus(AccountStatus.BLOCKED);
     }
 
     private String normalizeEmail(String email) {

@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
+import java.util.UUID;
+
 @Component
 @RequiredArgsConstructor
 public class AuthServiceClient {
@@ -18,4 +20,11 @@ public class AuthServiceClient {
                 .toBodilessEntity();
     }
     public record UpdateProfileRequest(String email, String firstName, String lastName) {}
+
+    public void blockUser(UUID id, String token) {
+        restClient.post()
+                .uri("/api/auth/block/{id}", id)
+                .retrieve()
+                .toBodilessEntity();
+    }
 }
