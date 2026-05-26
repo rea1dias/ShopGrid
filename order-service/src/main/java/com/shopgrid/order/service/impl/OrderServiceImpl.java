@@ -6,8 +6,11 @@ import com.shopgrid.order.common.dto.request.ProductInfo;
 import com.shopgrid.order.common.dto.response.OrderItemResponse;
 import com.shopgrid.order.common.dto.response.OrderResponse;
 import com.shopgrid.order.common.enums.OrderStatus;
+import com.shopgrid.order.config.kafka.KafkaEventPublisher;
 import com.shopgrid.order.domain.Order;
 import com.shopgrid.order.domain.OrderItem;
+import com.shopgrid.order.event.OrderCreatedEvent;
+import com.shopgrid.order.event.OrderItemEvent;
 import com.shopgrid.order.repo.OrderRepository;
 import com.shopgrid.order.service.OrderService;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +28,7 @@ public class OrderServiceImpl implements OrderService {
 
     private final OrderRepository orderRepository;
     private final ProductServiceClient productServiceClient;
+    private final KafkaEventPublisher publisher;
 
     @Override
     @Transactional
@@ -58,6 +62,23 @@ public class OrderServiceImpl implements OrderService {
 
         Order saved = orderRepository.save(order);
 
+        OrderCreatedEvent event = new OrderCreatedEvent(
+                saved.getId(),
+                saved.getUserId(),
+                items.stream()
+                        .map(item -> new OrderItemEvent(
+                                item.getProductId(),
+                                item.getProductName(),
+                                item.getPrice(),
+                                item.getQuantity()
+                        ))
+                        .toList(),
+                totalPrice,
+                saved.getCreatedAt()
+        );
+
+        publisher.publishOrderCreated(event);
+
         List<OrderItemResponse> responses = items.stream()
                 .map(item -> new OrderItemResponse(
                                 item.getProductId(),
@@ -68,6 +89,7 @@ public class OrderServiceImpl implements OrderService {
                 .toList();
 
         return new OrderResponse(
+                saved.getId(),
                 saved.getUserId(),
                 saved.getStatus(),
                 saved.getTotalPrice(),
