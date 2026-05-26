@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.UUID;
 
 public record OrderResponse(
+        UUID orderId,
         UUID userId,
         OrderStatus status,
         BigDecimal totalPrice,
