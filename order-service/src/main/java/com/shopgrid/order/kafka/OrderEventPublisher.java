@@ -1,4 +1,4 @@
-package com.shopgrid.order.config.kafka;
+package com.shopgrid.order.kafka;
 
 import com.shopgrid.order.event.OrderCreatedEvent;
 import lombok.RequiredArgsConstructor;
@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class KafkaEventPublisher {
+public class OrderEventPublisher {
 
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
