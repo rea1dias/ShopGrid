@@ -6,7 +6,9 @@ import com.shopgrid.order.common.dto.request.ProductInfo;
 import com.shopgrid.order.common.dto.response.OrderItemResponse;
 import com.shopgrid.order.common.dto.response.OrderResponse;
 import com.shopgrid.order.common.enums.OrderStatus;
-import com.shopgrid.order.config.kafka.KafkaEventPublisher;
+import com.shopgrid.order.common.exception.NotFoundException;
+import com.shopgrid.order.kafka.OrderEventConsumer;
+import com.shopgrid.order.kafka.OrderEventPublisher;
 import com.shopgrid.order.domain.Order;
 import com.shopgrid.order.domain.OrderItem;
 import com.shopgrid.order.event.OrderCreatedEvent;
@@ -28,7 +30,7 @@ public class OrderServiceImpl implements OrderService {
 
     private final OrderRepository orderRepository;
     private final ProductServiceClient productServiceClient;
-    private final KafkaEventPublisher publisher;
+    private final OrderEventPublisher publisher;
 
     @Override
     @Transactional
@@ -97,5 +99,15 @@ public class OrderServiceImpl implements OrderService {
                 saved.getUpdatedAt(),
                 responses
         );
+    }
+
+    @Override
+    @Transactional
+    public void update(UUID orderId, OrderStatus status) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new NotFoundException(orderId));
+        order.setStatus(status);
+        order.setUpdatedAt(Instant.now());
+        orderRepository.save(order);
     }
 }
