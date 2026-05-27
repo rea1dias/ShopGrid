@@ -6,6 +6,7 @@ import com.shopgrid.order.common.dto.request.ProductInfo;
 import com.shopgrid.order.common.dto.response.OrderItemResponse;
 import com.shopgrid.order.common.dto.response.OrderResponse;
 import com.shopgrid.order.common.enums.OrderStatus;
+import com.shopgrid.order.common.exception.AccessDeniedException;
 import com.shopgrid.order.common.exception.NotFoundException;
 import com.shopgrid.order.kafka.OrderEventConsumer;
 import com.shopgrid.order.kafka.OrderEventPublisher;
@@ -13,9 +14,14 @@ import com.shopgrid.order.domain.Order;
 import com.shopgrid.order.domain.OrderItem;
 import com.shopgrid.order.event.OrderCreatedEvent;
 import com.shopgrid.order.event.OrderItemEvent;
+import com.shopgrid.order.mapper.OrderMapper;
 import com.shopgrid.order.repo.OrderRepository;
 import com.shopgrid.order.service.OrderService;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,9 +34,11 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class OrderServiceImpl implements OrderService {
 
+    private static final Logger log = LoggerFactory.getLogger(OrderServiceImpl.class);
     private final OrderRepository orderRepository;
     private final ProductServiceClient productServiceClient;
     private final OrderEventPublisher publisher;
+    private final OrderMapper mapper;
 
     @Override
     @Transactional
@@ -109,5 +117,22 @@ public class OrderServiceImpl implements OrderService {
         order.setStatus(status);
         order.setUpdatedAt(Instant.now());
         orderRepository.save(order);
+    }
+
+    @Override
+    @Transactional
+    public OrderResponse get(UUID orderId, UUID userId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new NotFoundException(orderId));
+        if (!order.getUserId().equals(userId)) {
+            throw new AccessDeniedException(userId);
+        }
+        return mapper.toResponse(order);
+    }
+
+    @Override
+    @Transactional
+    public Page<OrderResponse> getMyOrders(UUID userId, Pageable pageable) {
+        return orderRepository.findByUserId(userId, pageable).map(mapper::toResponse);
     }
 }

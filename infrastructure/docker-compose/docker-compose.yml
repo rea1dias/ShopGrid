@@ -47,6 +47,19 @@ services:
     networks:
       - shopgrid-network
 
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: shopgrid-kafka-ui
+    depends_on:
+      - kafka
+    ports:
+      - "1212:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+    networks:
+      - shopgrid-network
+
   elasticsearch:
     image: elasticsearch:8.13.0
     container_name: shopgrid-elasticsearch

@@ -1,17 +1,22 @@
 package com.shopgrid.inventory.service.impl;
 
+import com.shopgrid.inventory.domain.dto.request.InventoryUpdateRequest;
+import com.shopgrid.inventory.domain.dto.response.InventoryResponse;
 import com.shopgrid.inventory.domain.entity.Inventory;
 import com.shopgrid.inventory.event.*;
-import com.shopgrid.inventory.exception.AlreadyExistsException;
 import com.shopgrid.inventory.exception.InsufficientStockException;
 import com.shopgrid.inventory.exception.NotFoundException;
 import com.shopgrid.inventory.kafka.InventoryEventPublisher;
+import com.shopgrid.inventory.mapper.InventoryMapper;
 import com.shopgrid.inventory.repo.InventoryRepository;
 import com.shopgrid.inventory.service.InventoryService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -20,6 +25,7 @@ public class InventoryServiceImpl implements InventoryService {
 
     private final InventoryRepository inventoryRepository;
     private final InventoryEventPublisher publisher;
+    private final InventoryMapper mapper;
 
     @Override
     @Transactional
@@ -55,5 +61,15 @@ public class InventoryServiceImpl implements InventoryService {
                 0
         );
         inventoryRepository.save(inventory);
+    }
+
+    @Override
+    @PreAuthorize("hasRole('ADMIN')")
+    @Transactional
+    public InventoryResponse add(UUID productId, InventoryUpdateRequest request) {
+        Inventory inventory = inventoryRepository.findByProductId(productId)
+                .orElseThrow(() -> new NotFoundException(productId));
+        inventory.setQuantity(inventory.getQuantity() + request.quantity());
+        return mapper.toResponse(inventoryRepository.save(inventory));
     }
 }
