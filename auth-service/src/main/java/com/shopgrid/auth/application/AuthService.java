@@ -110,9 +110,7 @@ public class AuthService {
         if (!storedToken.isActive(now)) {
             throw new UnauthorizedException("Invalid refresh token");
         }
-
         storedToken.revoke(now);
-
         return createAuthResponse(storedToken.getUser());
     }
 
