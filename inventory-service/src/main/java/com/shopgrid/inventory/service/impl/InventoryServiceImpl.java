@@ -1,10 +1,8 @@
 package com.shopgrid.inventory.service.impl;
 
 import com.shopgrid.inventory.domain.entity.Inventory;
-import com.shopgrid.inventory.event.OrderCreatedEvent;
-import com.shopgrid.inventory.event.OrderItemEvent;
-import com.shopgrid.inventory.event.StockFailedEvent;
-import com.shopgrid.inventory.event.StockReservedEvent;
+import com.shopgrid.inventory.event.*;
+import com.shopgrid.inventory.exception.AlreadyExistsException;
 import com.shopgrid.inventory.exception.InsufficientStockException;
 import com.shopgrid.inventory.exception.NotFoundException;
 import com.shopgrid.inventory.kafka.InventoryEventPublisher;
@@ -43,5 +41,19 @@ public class InventoryServiceImpl implements InventoryService {
         } catch (Exception e) {
             publisher.publishStockFailed(new StockFailedEvent(event.orderId(), event.userId(), e.getMessage()));
         }
+    }
+
+    @Override
+    public void createInventory(ProductCreatedEvent event) {
+        if (inventoryRepository.findById(event.productId()).isPresent()) {
+            log.info("Inventory already exists: {}", event.productId());
+            return;
+        }
+        Inventory inventory = new Inventory(
+                event.productId(),
+                0,
+                0
+        );
+        inventoryRepository.save(inventory);
     }
 }

@@ -24,4 +24,10 @@ public class Inventory {
 
     @Column(nullable = false)
     private Integer reserved;
+
+    public Inventory(UUID productId, Integer quantity, Integer reserved) {
+        this.productId = productId;
+        this.quantity = quantity;
+        this.reserved = reserved;
+    }
 }
