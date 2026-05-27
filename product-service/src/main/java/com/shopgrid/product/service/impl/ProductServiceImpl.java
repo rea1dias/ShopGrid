@@ -6,8 +6,10 @@ import com.shopgrid.product.domain.dto.response.ProductResponse;
 import com.shopgrid.product.domain.dto.response.UpdateProductRequest;
 import com.shopgrid.product.domain.entity.Category;
 import com.shopgrid.product.domain.entity.Product;
+import com.shopgrid.product.event.ProductCreatedEvent;
 import com.shopgrid.product.exception.NotFoundException;
 import com.shopgrid.product.filter.ProductSpecification;
+import com.shopgrid.product.kafka.ProductEventPublisher;
 import com.shopgrid.product.mapper.ProductMapper;
 import com.shopgrid.product.repo.CategoryRepository;
 import com.shopgrid.product.repo.ProductRepository;
@@ -33,6 +35,7 @@ public class ProductServiceImpl implements ProductService {
     private final ProductRepository productRepository;
     private final ProductMapper productMapper;
     private final CategoryRepository categoryRepository;
+    private final ProductEventPublisher publisher;
 
     @Override
     @PreAuthorize("hasRole('SELLER') or hasRole('ADMIN')")
@@ -46,7 +49,10 @@ public class ProductServiceImpl implements ProductService {
         product.setCategories(categories);
         product.setSellerId(sellerId);
         log.info("Product: {}", product);
-        return productMapper.toResponse(productRepository.save(product));
+        Product saved = productRepository.save(product);
+        ProductCreatedEvent event = new ProductCreatedEvent(saved.getId());
+        publisher.publishProductCreated(event);
+        return productMapper.toResponse(saved);
     }
 
     @Override

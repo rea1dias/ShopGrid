@@ -19,6 +19,10 @@ public class GlobalExceptionHandler {
         return new ErrorResponse(404, e.getMessage() , Instant.now());
     }
 
+    @ExceptionHandler(AlreadyExistsException.class)
+    public ErrorResponse handleAlreadyExistsException(AlreadyExistsException e) {
+        return new ErrorResponse(409, e.getMessage() , Instant.now());
+    }
 }
 
 
