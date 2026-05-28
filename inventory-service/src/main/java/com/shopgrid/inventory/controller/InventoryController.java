@@ -22,4 +22,10 @@ public class InventoryController {
                                                          @RequestBody InventoryUpdateRequest request) {
         return ResponseEntity.status(HttpStatus.OK).body(service.add(productId, request));
     }
+
+    @GetMapping("/{productId}")
+    public ResponseEntity<InventoryResponse> get(@PathVariable("productId") UUID productId) {
+        return ResponseEntity.status(HttpStatus.OK).body(service.get(productId));
+    }
+
 }

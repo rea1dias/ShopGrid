@@ -1,7 +1,6 @@
 package com.shopgrid.product.filter;
 
 import com.shopgrid.product.common.ProductStatus;
-import com.shopgrid.product.domain.dto.request.ProductFilterRequest;
 import com.shopgrid.product.domain.entity.Product;
 import lombok.experimental.UtilityClass;
 import org.springframework.data.jpa.domain.Specification;
@@ -12,12 +11,16 @@ import java.util.UUID;
 @UtilityClass
 public class ProductSpecification {
 
-    public Specification<Product> filter(ProductFilterRequest request) {
-        return Specification.where(byName(request.name()))
-                .and(byCategory(request.categoryId()))
-                .and(byMinPrice(request.minPrice()))
-                .and(byMaxPrice(request.maxPrice()))
-                .and(byStatus(request.status()));
+    public Specification<Product> filter(String name,
+                                         UUID categoryId,
+                                         BigDecimal minPrice,
+                                         BigDecimal maxPrice,
+                                         ProductStatus status) {
+        return Specification.where(byName(name))
+                .and(byCategory(categoryId))
+                .and(byMinPrice(minPrice))
+                .and(byMaxPrice(maxPrice))
+                .and(byStatus(status));
     }
 
     private Specification<Product> byName(String name) {

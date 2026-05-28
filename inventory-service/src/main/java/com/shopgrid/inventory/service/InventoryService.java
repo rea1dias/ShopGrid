@@ -12,4 +12,5 @@ public interface InventoryService {
     void reserveStock(OrderCreatedEvent event);
     void createInventory(ProductCreatedEvent event);
     InventoryResponse add(UUID productId, InventoryUpdateRequest request);
+    InventoryResponse get(UUID productId);
 }

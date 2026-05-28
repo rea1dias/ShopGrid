@@ -1,7 +1,9 @@
 package com.shopgrid.order.common.exception;
 
 import com.shopgrid.order.common.dto.response.ErrorResponse;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.time.Instant;
@@ -12,5 +14,16 @@ public class ApiExceptionHandler {
     @ExceptionHandler(NotFoundException.class)
     public ErrorResponse handleNotFoundException(NotFoundException e) {
         return new ErrorResponse(404, e.getMessage(), Instant.now());
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ErrorResponse handleAccessDeniedException(AccessDeniedException e) {
+        return new ErrorResponse(403, e.getMessage(), Instant.now());
+    }
+
+    @ExceptionHandler(ServiceUnavailableException.class)
+    @ResponseStatus(HttpStatus.SERVICE_UNAVAILABLE)
+    public ErrorResponse handleServiceUnavailableException(ServiceUnavailableException e) {
+        return new ErrorResponse(503, e.getMessage(), Instant.now());
     }
 }

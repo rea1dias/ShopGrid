@@ -1,6 +1,6 @@
 package com.shopgrid.product.service.impl;
 
-import com.shopgrid.product.domain.dto.request.ProductFilterRequest;
+import com.shopgrid.product.common.ProductStatus;
 import com.shopgrid.product.domain.dto.request.ProductRequest;
 import com.shopgrid.product.domain.dto.response.ProductResponse;
 import com.shopgrid.product.domain.dto.response.UpdateProductRequest;
@@ -24,6 +24,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
@@ -99,8 +100,13 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public Page<ProductResponse> getProductsByFilter(ProductFilterRequest request, Pageable pageable) {
-        Specification<Product> spec = ProductSpecification.filter(request);
+    @Transactional
+    public Page<ProductResponse> getProductsByFilter(String name,
+                                                     UUID categoryId,
+                                                     BigDecimal minPrice,
+                                                     BigDecimal maxPrice,
+                                                     ProductStatus status, Pageable pageable) {
+        Specification<Product> spec = ProductSpecification.filter(name, categoryId, minPrice, maxPrice, status);
         Page<Product> products = productRepository.findAll(spec, pageable);
         return products.map(productMapper::toResponse);
     }

@@ -72,4 +72,12 @@ public class InventoryServiceImpl implements InventoryService {
         inventory.setQuantity(inventory.getQuantity() + request.quantity());
         return mapper.toResponse(inventoryRepository.save(inventory));
     }
+
+    @Override
+    @PreAuthorize("hasRole('ADMIN')")
+    public InventoryResponse get(UUID productId) {
+        Inventory inventory = inventoryRepository.findByProductId(productId)
+                .orElseThrow(() -> new NotFoundException(productId));
+        return mapper.toResponse(inventory);
+    }
 }
