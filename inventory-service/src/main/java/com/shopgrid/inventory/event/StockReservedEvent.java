@@ -1,8 +1,11 @@
 package com.shopgrid.inventory.event;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 
 public record StockReservedEvent(
         UUID orderId,
-        UUID userId
+        UUID userId,
+        BigDecimal totalPrice
+
 ) {}
