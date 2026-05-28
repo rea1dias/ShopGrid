@@ -1,6 +1,6 @@
 package com.shopgrid.product.rest;
 
-import com.shopgrid.product.domain.dto.request.ProductFilterRequest;
+import com.shopgrid.product.common.ProductStatus;
 import com.shopgrid.product.domain.dto.request.ProductRequest;
 import com.shopgrid.product.domain.dto.response.ProductResponse;
 import com.shopgrid.product.domain.dto.response.UpdateProductRequest;
@@ -12,7 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import java.math.BigDecimal;
 import java.util.UUID;
 
 @RestController
@@ -58,8 +58,13 @@ public class ProductController {
     }
 
     @GetMapping("/filter")
-    public ResponseEntity<Page<ProductResponse>> getProducts(@RequestBody ProductFilterRequest request,
-                                                             Pageable pageable){
-        return ResponseEntity.ok(productService.getProductsByFilter(request, pageable));
+    public ResponseEntity<Page<ProductResponse>> getProducts(
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) UUID categoryId,
+            @RequestParam(required = false) BigDecimal minPrice,
+            @RequestParam(required = false) BigDecimal maxPrice,
+            @RequestParam(required = false) ProductStatus status,
+            Pageable pageable) {
+        return ResponseEntity.ok(productService.getProductsByFilter(name, categoryId, minPrice, maxPrice, status, pageable));
     }
 }

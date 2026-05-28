@@ -25,6 +25,9 @@ public class Inventory {
     @Column(nullable = false)
     private Integer reserved;
 
+    @Version
+    private Long version;
+
     public Inventory(UUID productId, Integer quantity, Integer reserved) {
         this.productId = productId;
         this.quantity = quantity;
