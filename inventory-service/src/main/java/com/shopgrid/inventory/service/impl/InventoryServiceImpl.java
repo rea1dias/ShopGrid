@@ -38,19 +38,13 @@ public class InventoryServiceImpl implements InventoryService {
                     throw new InsufficientStockException(item.productId());
                 }
                 inventory.setQuantity(inventory.getQuantity() - item.quantity());
-                log.info("Reserving stock for productId: {}", item.productId());
                 inventory.setReserved(inventory.getReserved() + item.quantity());
                 inventoryRepository.save(inventory);
-                log.info("Reserved stock for productId: {}", item.productId());
+                log.info("Reserved stock: {}", inventory.getReserved());
             }
             publisher.publishStockReserved(new StockReservedEvent(event.orderId(), event.userId(), event.totalPrice()));
         } catch (Exception e) {
             log.error("Failed to reserve stock for orderId: {}, error: {}", event.orderId(), e.getMessage());
-            try {
-                publisher.publishStockFailed(new StockFailedEvent(event.orderId(), event.userId(), e.getMessage()));
-            } catch (Exception publishException) {
-                log.error("Failed to publish stock.failed event: {}", publishException.getMessage());
-            }
         }
     }
 

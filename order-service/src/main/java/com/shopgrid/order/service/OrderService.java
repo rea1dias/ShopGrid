@@ -14,5 +14,4 @@ public interface OrderService {
     void update(UUID id, OrderStatus status);
     OrderResponse get(UUID orderId, UUID userId);
     Page<OrderResponse> getMyOrders(UUID userId, Pageable pageable);
-
 }

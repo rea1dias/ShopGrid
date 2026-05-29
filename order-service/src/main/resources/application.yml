@@ -12,7 +12,6 @@ spring:
       properties:
         spring.json.use.type.headers: false
         spring.json.trusted.packages: "com.shopgrid.*"
-        spring.json.value.default.type: "com.shopgrid.order.event.StockReservedEvent"
   application:
     name: order-service
   datasource:

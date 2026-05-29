@@ -36,8 +36,7 @@ public class PaymentServiceImpl implements PaymentService {
                         payment.getUserId()
                 ));
             }
-            log.info("Payment completed event published");
-            if(payment.getStatus().equals(PaymentStatus.FAILED)) {
+            if (payment.getStatus().equals(PaymentStatus.FAILED)) {
                 publisher.paymentFailureEvent(new PaymentFailedEvent(
                         payment.getOrderId(),
                         payment.getUserId(),

@@ -1,6 +1,7 @@
 package com.shopgrid.order.kafka;
 
 import com.shopgrid.order.common.enums.OrderStatus;
+import com.shopgrid.order.event.PaymentCompletedEvent;
 import com.shopgrid.order.event.StockFailedEvent;
 import com.shopgrid.order.event.StockReservedEvent;
 import com.shopgrid.order.service.OrderService;
@@ -16,15 +17,24 @@ public class OrderEventConsumer {
 
     private final OrderService service;
 
-    @KafkaListener(topics = "stock.reserved", groupId = "order-service")
+    @KafkaListener(topics = "stock.reserved", groupId = "order-service",
+            properties = {"spring.json.value.default.type=com.shopgrid.order.event.StockReservedEvent"})
     public void handleStockReserved(StockReservedEvent event) {
         log.info("Received stock reserved event: {}", event.orderId());
-        service.update(event.orderId(), OrderStatus.CONFIRMED);
+        service.update(event.orderId(), OrderStatus.RESERVED);
     }
 
-    @KafkaListener(topics = "stock.failed", groupId = "order-service")
+    @KafkaListener(topics = "stock.failed", groupId = "order-service",
+            properties = {"spring.json.value.default.type=com.shopgrid.order.event.StockFailedEvent"})
     public void handleStockFailed(StockFailedEvent event) {
-        log.info("Received stock failed event: {}", event);
+        log.info("Received stock failed event: {}", event.orderId());
         service.update(event.orderId(), OrderStatus.CANCELLED);
+    }
+
+    @KafkaListener(topics = "payment.completed", groupId = "order-service",
+            properties = {"spring.json.value.default.type=com.shopgrid.order.event.PaymentCompletedEvent"})
+    public void handlePaymentCompleted(PaymentCompletedEvent event) {
+        log.info("Received payment completed event: {}", event.orderId());
+        service.update(event.orderId(), OrderStatus.CONFIRMED);
     }
 }
