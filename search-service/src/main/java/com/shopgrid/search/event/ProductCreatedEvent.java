@@ -1,4 +1,4 @@
-package com.shopgrid.product.event;
+package com.shopgrid.search.event;
 
 import java.math.BigDecimal;
 import java.util.List;

@@ -13,12 +13,12 @@ public class PublicRoutes {
             "/api/auth/login",
             "/api/auth/refresh",
             "/actuator/health",
-            "/actuator/info"
+            "/actuator/info",
+            "/api/search"
     );
 
     public boolean isPublic(ServerWebExchange exchange) {
         String path = exchange.getRequest().getURI().getPath();
         return PUBLIC_PATHS.stream().anyMatch(path::startsWith);
     }
-
 }

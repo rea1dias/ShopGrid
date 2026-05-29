@@ -1,0 +1,22 @@
+spring:
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: search-service
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.use.type.headers: false
+        spring.json.trusted.packages: "com.shopgrid.*"
+  application:
+    name: search-service
+  elasticsearch:
+    uris: http://localhost:9200
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info
+server:
+  port: 8088

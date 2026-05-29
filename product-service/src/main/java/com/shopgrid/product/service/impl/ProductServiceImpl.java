@@ -51,7 +51,17 @@ public class ProductServiceImpl implements ProductService {
         product.setSellerId(sellerId);
         log.info("Product: {}", product);
         Product saved = productRepository.save(product);
-        ProductCreatedEvent event = new ProductCreatedEvent(saved.getId());
+        ProductCreatedEvent event = new ProductCreatedEvent(
+                saved.getId(),
+                saved.getName(),
+                saved.getDescription(),
+                saved.getPrice(),
+                saved.getSku(),
+                saved.getStatus().name(),
+                saved.getCategories().stream()
+                        .map(Category::getName)
+                        .toList()
+        );
         publisher.publishProductCreated(event);
         return productMapper.toResponse(saved);
     }
