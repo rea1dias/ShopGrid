@@ -20,6 +20,13 @@ import java.util.List;
 public class HeaderAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        boolean skip = request.getRequestURI().startsWith("/api/users/internal/");
+        log.info("HeaderAuthenticationFilter: URI={}, skip={}", request.getRequestURI(), skip);
+        return skip;
+    }
+
+    @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {

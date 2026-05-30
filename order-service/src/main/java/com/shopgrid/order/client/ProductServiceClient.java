@@ -16,10 +16,9 @@ import java.util.UUID;
 @Slf4j
 public class ProductServiceClient {
 
-    private final RestClient client;
     private final CircuitBreakerFactory circuitBreakerFactory;
-
     private final RestClient restClient;
+
     public ProductInfo getProductInfo(UUID id) {
         CircuitBreaker breaker = circuitBreakerFactory.create("productService");
         return breaker.run(

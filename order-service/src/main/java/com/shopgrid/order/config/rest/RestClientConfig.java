@@ -16,4 +16,12 @@ public class RestClientConfig {
                 .baseUrl("http://localhost:8083")
                 .build();
     }
+
+    @Bean
+    public RestClient restUserClient() {
+        return RestClient
+                .builder()
+                .baseUrl("http://localhost:8082")
+                .build();
+    }
 }
