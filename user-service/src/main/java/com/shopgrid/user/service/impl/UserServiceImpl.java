@@ -57,7 +57,6 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @PreAuthorize("hasRole('ADMIN')")
     public UserResponse getById(UUID id) {
         return userMapper.toResponse(
                 userRepository.findById(id)

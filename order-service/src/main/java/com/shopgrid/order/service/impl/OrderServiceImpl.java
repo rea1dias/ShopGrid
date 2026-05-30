@@ -1,13 +1,18 @@
 package com.shopgrid.order.service.impl;
 
 import com.shopgrid.order.client.ProductServiceClient;
+import com.shopgrid.order.client.UserServiceClient;
 import com.shopgrid.order.common.dto.request.OrderRequest;
 import com.shopgrid.order.common.dto.request.ProductInfo;
 import com.shopgrid.order.common.dto.response.OrderItemResponse;
 import com.shopgrid.order.common.dto.response.OrderResponse;
+import com.shopgrid.order.common.dto.response.UserResponse;
+import com.shopgrid.order.common.enums.ChannelType;
+import com.shopgrid.order.common.enums.NotificationTemplateType;
 import com.shopgrid.order.common.enums.OrderStatus;
 import com.shopgrid.order.common.exception.AccessDeniedException;
 import com.shopgrid.order.common.exception.NotFoundException;
+import com.shopgrid.order.event.NotificationEvent;
 import com.shopgrid.order.kafka.OrderEventConsumer;
 import com.shopgrid.order.kafka.OrderEventPublisher;
 import com.shopgrid.order.domain.Order;
@@ -24,10 +29,13 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestClient;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -39,6 +47,7 @@ public class OrderServiceImpl implements OrderService {
     private final ProductServiceClient productServiceClient;
     private final OrderEventPublisher publisher;
     private final OrderMapper mapper;
+    private final UserServiceClient userServiceClient;
 
     @Override
     @Transactional
@@ -117,6 +126,29 @@ public class OrderServiceImpl implements OrderService {
         order.setStatus(status);
         order.setUpdatedAt(Instant.now());
         orderRepository.save(order);
+
+        try {
+            UserResponse user = userServiceClient.getUser(order.getUserId());
+            Map<String, Object> context = new HashMap<>();
+            context.put("user", user.firstName());
+            context.put("email", user.email());
+
+            if (status.equals(OrderStatus.CONFIRMED)) {
+                NotificationEvent event = new NotificationEvent(
+                        UUID.randomUUID().toString(),
+                        order.getUserId(),
+                        orderId,
+                        ChannelType.PUSH,
+                        NotificationTemplateType.ORDER_CONFIRMED,
+                        user.email(),
+                        order.getTotalPrice(),
+                        context
+                );
+                publisher.publishSendNotification(event);
+            }
+        } catch (Exception e) {
+            log.warn("Could not fetch user {} for notification, skipping. Reason: {}", order.getUserId(), e.getMessage());
+        }
     }
 
     @Override
