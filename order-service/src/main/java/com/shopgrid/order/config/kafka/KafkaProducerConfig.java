@@ -15,7 +15,10 @@ public class KafkaProducerConfig {
     }
 
     @Bean
-    public KafkaTemplate<String, NotificationEvent> notificationKafkaTemplate(ProducerFactory<String, NotificationEvent> producerFactory) {
-        return new KafkaTemplate<>(producerFactory);
+    @SuppressWarnings("unchecked")
+    public KafkaTemplate<String,
+            NotificationEvent> notificationEventKafkaTemplate(
+            ProducerFactory<String, Object> producerFactory) {
+        return new KafkaTemplate<>((ProducerFactory) producerFactory);
     }
 }
