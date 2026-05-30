@@ -13,12 +13,11 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class UserServiceClient {
 
-    private final RestClient restClient;
+    private final RestClient restUserClient;
 
-    public UserResponse getUser(UUID userId) {
-        return restClient
-                .get()
-                .uri("/api/users/internal/{id}", userId)
+    public UserResponse getUser(UUID id) {
+        return restUserClient.get()
+                .uri("/api/users/internal/{id}", id)
                 .retrieve()
                 .body(UserResponse.class);
     }

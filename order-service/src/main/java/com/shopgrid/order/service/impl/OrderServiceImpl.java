@@ -12,13 +12,12 @@ import com.shopgrid.order.common.enums.NotificationTemplateType;
 import com.shopgrid.order.common.enums.OrderStatus;
 import com.shopgrid.order.common.exception.AccessDeniedException;
 import com.shopgrid.order.common.exception.NotFoundException;
-import com.shopgrid.order.event.NotificationEvent;
-import com.shopgrid.order.kafka.OrderEventConsumer;
-import com.shopgrid.order.kafka.OrderEventPublisher;
 import com.shopgrid.order.domain.Order;
 import com.shopgrid.order.domain.OrderItem;
+import com.shopgrid.order.event.NotificationEvent;
 import com.shopgrid.order.event.OrderCreatedEvent;
 import com.shopgrid.order.event.OrderItemEvent;
+import com.shopgrid.order.kafka.OrderEventPublisher;
 import com.shopgrid.order.mapper.OrderMapper;
 import com.shopgrid.order.repo.OrderRepository;
 import com.shopgrid.order.service.OrderService;
@@ -29,7 +28,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.RestClient;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -126,9 +124,9 @@ public class OrderServiceImpl implements OrderService {
         order.setStatus(status);
         order.setUpdatedAt(Instant.now());
         orderRepository.save(order);
-
         try {
             UserResponse user = userServiceClient.getUser(order.getUserId());
+            log.info("User {}:", user.id());
             Map<String, Object> context = new HashMap<>();
             context.put("user", user.firstName());
             context.put("email", user.email());

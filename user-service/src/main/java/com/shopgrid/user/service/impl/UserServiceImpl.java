@@ -1,7 +1,6 @@
 package com.shopgrid.user.service.impl;
 
 import com.shopgrid.user.client.AuthServiceClient;
-import com.shopgrid.user.config.RestClientConfig;
 import com.shopgrid.user.domain.User;
 import com.shopgrid.user.domain.model.AccountStatus;
 import com.shopgrid.user.dto.request.UpdateUserRequest;
@@ -28,7 +27,6 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final UserMapper userMapper;
-    private final RestClientConfig restClient;
     private final AuthServiceClient authServiceClient;
 
     @Override
