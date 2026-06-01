@@ -26,10 +26,6 @@ public class PaymentServiceImpl implements PaymentService {
         try {
             Payment payment = new Payment(event.orderId(),event.userId(),event.totalPrice());
             paymentRepository.save(payment);
-            publisher.paymentSuccessEvent(new PaymentCompletedEvent(
-                    payment.getOrderId(),
-                    payment.getUserId()
-            ));
             if (payment.getStatus().equals(PaymentStatus.SUCCESS)) {
                 publisher.paymentSuccessEvent(new PaymentCompletedEvent(
                         payment.getOrderId(),
