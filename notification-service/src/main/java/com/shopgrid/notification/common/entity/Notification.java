@@ -3,7 +3,9 @@ package com.shopgrid.notification.common.entity;
 import com.shopgrid.notification.common.enums.ChannelType;
 import com.shopgrid.notification.common.enums.NotificationStatus;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.Instant;
@@ -13,6 +15,8 @@ import java.util.UUID;
 @Table(name = "notifications")
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class Notification {
 
     @Id
@@ -47,4 +51,23 @@ public class Notification {
     @Column(name = "updated_at")
     private Instant updatedAt;
 
+    public Notification(String eventId,
+                        String userId,
+                        ChannelType channel,
+                        String recipient,
+                        String messageText,
+                        NotificationStatus status,
+                        String errorMessage,
+                        Instant createdAt,
+                        Instant updatedAt) {
+        this.eventId = eventId;
+        this.userId = userId;
+        this.channel = channel;
+        this.recipient = recipient;
+        this.messageText = messageText;
+        this.status = status;
+        this.errorMessage = errorMessage;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+    }
 }
