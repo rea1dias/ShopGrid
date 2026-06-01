@@ -45,12 +45,13 @@ public class InventoryServiceImpl implements InventoryService {
             publisher.publishStockReserved(new StockReservedEvent(event.orderId(), event.userId(), event.totalPrice()));
         } catch (Exception e) {
             log.error("Failed to reserve stock for orderId: {}, error: {}", event.orderId(), e.getMessage());
+            publisher.publishStockFailed(new StockFailedEvent(event.orderId(), event.userId(), e.getMessage()));
         }
     }
 
     @Override
     public void createInventory(ProductCreatedEvent event) {
-        if (inventoryRepository.findById(event.productId()).isPresent()) {
+        if (inventoryRepository.findByProductId(event.productId()).isPresent()) {
             log.info("Inventory already exists: {}", event.productId());
             return;
         }

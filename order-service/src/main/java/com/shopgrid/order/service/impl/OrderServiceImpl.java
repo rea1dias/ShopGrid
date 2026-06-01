@@ -126,9 +126,7 @@ public class OrderServiceImpl implements OrderService {
         orderRepository.save(order);
         try {
             if (status.equals(OrderStatus.CONFIRMED)) {
-
                 UserResponse user = userServiceClient.getUser(order.getUserId());
-                log.info("User {}:", user.id());
                 Map<String, Object> context = new HashMap<>();
                 context.put("user", user.firstName());
                 context.put("email", user.email());

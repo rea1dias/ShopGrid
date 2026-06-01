@@ -40,9 +40,30 @@ public class NotificationServiceImpl implements NotificationService {
         );
         try {
             repository.save(notification);
-            log.info("Sending notification id: {}", notification.getId());
+
+            // отправка по каналу
+            switch (event.channel()) {
+                case PUSH -> log.info("[PUSH stub] userId={}, orderId={}, message=Ваш заказ #{} подтверждён",
+                        event.userId(), event.orderId(), event.orderId());
+                case SMS -> log.info("[SMS stub] recipient={}, orderId={}, message=Ваш заказ #{} подтверждён",
+                        event.recipient(), event.orderId(), event.orderId());
+                case EMAIL -> log.info("[EMAIL stub] recipient={}, orderId={}",
+                        event.recipient(), event.orderId());
+            }
+
+            notification.setStatus(NotificationStatus.SENT);
+            notification.setUpdatedAt(Instant.now());
+            repository.save(notification);
+
+            log.info("Notification sent id: {}", notification.getId());
         } catch (org.springframework.dao.DataIntegrityViolationException e) {
             log.warn("Duplicate event ignored (concurrent): {}", event.eventId());
+        } catch (Exception e) {
+            notification.setStatus(NotificationStatus.FAILED);
+            notification.setErrorMessage(e.getMessage());
+            notification.setUpdatedAt(Instant.now());
+            repository.save(notification);
+            log.error("Failed to send notification: {}", e.getMessage());
         }
 
     }
