@@ -338,30 +338,30 @@ shopgrid/
 
 ### Stage 1: Foundation
 
-- [ ] Create repository structure
-- [ ] Add common Gradle or Maven configuration
-- [ ] Add Docker Compose for PostgreSQL, Kafka, Redis, and Elasticsearch
-- [ ] Create API Gateway
-- [ ] Create Auth Service
-- [ ] Implement JWT authentication
+- [x] Create repository structure
+- [x] Add common Gradle or Maven configuration
+- [x] Add Docker Compose for PostgreSQL, Kafka, Redis, and Elasticsearch
+- [x] Create API Gateway
+- [x] Create Auth Service
+- [x] Implement JWT authentication
 
 ### Stage 2: Core E-commerce
 
-- [ ] Create User Service
-- [ ] Create Product Service
-- [ ] Create Order Service
-- [ ] Create Inventory Service
-- [ ] Add basic REST APIs
-- [ ] Add PostgreSQL database per service
+- [x] Create User Service
+- [x] Create Product Service
+- [x] Create Order Service
+- [x] Create Inventory Service
+- [x] Add basic REST APIs
+- [x] Add PostgreSQL database per service
 
 ### Stage 3: Events
 
-- [ ] Add Kafka
-- [ ] Publish `order.created`
-- [ ] Publish `payment.completed`
-- [ ] Publish `stock.reserved`
-- [ ] Add Notification Service
-- [ ] Add Search Service indexing from Kafka events
+- [x] Add Kafka
+- [x] Publish `order.created`
+- [x] Publish `payment.completed`
+- [x] Publish `stock.reserved`
+- [x] Add Notification Service
+- [x] Add Search Service indexing from Kafka events
 
 ### Stage 4: Reliability
 
@@ -395,4 +395,3 @@ This project is in the planning and initial development stage.
 This is a pet project created for learning purposes.
 
 The architecture is intentionally bigger than a simple CRUD application because the goal is to practice real-world backend engineering concepts step by step.
-
