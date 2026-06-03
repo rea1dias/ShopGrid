@@ -20,19 +20,19 @@ public class OrderController {
     private final OrderService service;
 
     @PostMapping
-    public ResponseEntity<OrderResponse> create(@RequestHeader("X-User-id") UUID userId,
+    public ResponseEntity<OrderResponse> create(@RequestHeader("X-User-Id") UUID userId,
                                                 @RequestBody OrderRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.create(request, userId));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<OrderResponse> get(@RequestHeader("X-User-id") UUID userId,
+    public ResponseEntity<OrderResponse> get(@RequestHeader("X-User-Id") UUID userId,
                                              @PathVariable UUID id) {
         return ResponseEntity.status(HttpStatus.OK).body(service.get(id, userId));
     }
 
     @GetMapping
-    public ResponseEntity<Page<OrderResponse>> my(@RequestHeader("X-User-id") UUID userId,
+    public ResponseEntity<Page<OrderResponse>> my(@RequestHeader("X-User-Id") UUID userId,
                                                   Pageable pageable) {
         return ResponseEntity.status(HttpStatus.OK).body(service.getMyOrders(userId, pageable));
     }
