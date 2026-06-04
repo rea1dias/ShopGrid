@@ -1,4 +1,4 @@
-package com.shopgrid.user.config;
+package com.shopgrid.admin.security.jwt;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -17,21 +17,23 @@ import java.util.List;
 
 @Component
 @Slf4j
-public class HeaderAuthenticationFilter extends OncePerRequestFilter {
+public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
-                                    FilterChain filterChain) throws ServletException, IOException {
+                                    FilterChain chain) throws IOException, ServletException {
         String userId = request.getHeader("X-User-Id");
         String email = request.getHeader("X-User-Email");
         String role = request.getHeader("X-User-Role");
-        log.info("user-service Headers: userId={}, email={}, role={}", userId, email, role);
+
+        log.info("Headers: userId={}, email={}, role={}", userId, email, role);
         if (userId != null && email != null && role != null) {
-            List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_"+ role));
+            List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_" + role));
             UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(email, null, authorities);
             SecurityContextHolder.getContext().setAuthentication(authentication);
         }
-        filterChain.doFilter(request, response);
+        chain.doFilter(request, response);
     }
+
 }

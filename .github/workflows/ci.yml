@@ -54,6 +54,7 @@ jobs:
                   "inventory-service"
                   "notification-service"
                   "search-service"
+                  "admin-service"
                 )
                 for SERVICE in "${SERVICES[@]}"; do
                   echo "Building $SERVICE..."

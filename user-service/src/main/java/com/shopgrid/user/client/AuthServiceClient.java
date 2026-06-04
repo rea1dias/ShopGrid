@@ -24,6 +24,7 @@ public class AuthServiceClient {
     public void blockUser(UUID id, String token) {
         restClient.post()
                 .uri("/api/auth/block/{id}", id)
+                .header("Authorization", token)
                 .retrieve()
                 .toBodilessEntity();
     }
