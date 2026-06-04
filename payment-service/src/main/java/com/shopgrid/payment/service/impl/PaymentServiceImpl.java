@@ -26,6 +26,11 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     public void processPayment(StockReservedEvent event) {
         try {
+            if (paymentRepository.existsByOrderId(event.orderId())) {
+                log.info("Payment already processed for orderId: {}", event.orderId());
+                return;
+            }
+
             Payment payment = new Payment(event.orderId(),event.userId(),event.totalPrice());
             if (event.totalPrice().compareTo(BigDecimal.valueOf(100000)) > 0) {
                 payment.setStatus(PaymentStatus.FAILED);

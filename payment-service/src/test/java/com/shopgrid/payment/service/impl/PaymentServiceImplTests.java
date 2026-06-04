@@ -1,7 +1,5 @@
 package com.shopgrid.payment.service.impl;
 
-import com.shopgrid.payment.common.enums.FailedReason;
-import com.shopgrid.payment.common.enums.PaymentStatus;
 import com.shopgrid.payment.domain.entity.Payment;
 import com.shopgrid.payment.event.PaymentCompletedEvent;
 import com.shopgrid.payment.event.PaymentFailedEvent;
@@ -42,6 +40,7 @@ public class PaymentServiceImplTests {
 
         verify(paymentRepository).save(any(Payment.class));
         verify(paymentEventPublisher).paymentSuccessEvent(any(PaymentCompletedEvent.class));
+        verify(paymentEventPublisher, never()).paymentFailureEvent(any());
     }
 
     @Test
@@ -51,15 +50,26 @@ public class PaymentServiceImplTests {
                 UUID.randomUUID(),
                 BigDecimal.valueOf(2000000));
 
-        Payment payment = new Payment(
-                event.orderId(),
-                event.userId(),
-                BigDecimal.valueOf(15000));
-        payment.setStatus(PaymentStatus.FAILED);
         paymentService.processPayment(event);
+
         verify(paymentRepository).save(any(Payment.class));
         verify(paymentEventPublisher).paymentFailureEvent(any(PaymentFailedEvent.class));
         verify(paymentEventPublisher, never()).paymentSuccessEvent(any());
     }
 
+    @Test
+    public void duplicatePaymentIsIgnored() {
+        StockReservedEvent event = new StockReservedEvent(
+                UUID.randomUUID(),
+                UUID.randomUUID(),
+                BigDecimal.valueOf(15000));
+
+        when(paymentRepository.existsByOrderId(event.orderId())).thenReturn(true);
+
+        paymentService.processPayment(event);
+
+        verify(paymentRepository, never()).save(any(Payment.class));
+        verify(paymentEventPublisher, never()).paymentSuccessEvent(any());
+        verify(paymentEventPublisher, never()).paymentFailureEvent(any());
+    }
 }
