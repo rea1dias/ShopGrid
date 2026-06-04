@@ -1,5 +1,6 @@
 package com.shopgrid.admin.controller;
 
+import com.shopgrid.admin.domain.dto.response.UserResponse;
 import com.shopgrid.admin.service.AdminService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +22,9 @@ public class AdminController {
         return ResponseEntity.noContent().build();
     }
 
-
-
+    @GetMapping("/{id}")
+    public ResponseEntity<UserResponse> get(@PathVariable UUID id,
+                                            @RequestHeader("Authorization") String token) {
+        return ResponseEntity.ok().body(service.get(id, token));
+    }
 }
