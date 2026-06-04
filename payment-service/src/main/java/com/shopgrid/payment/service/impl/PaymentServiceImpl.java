@@ -39,6 +39,7 @@ public class PaymentServiceImpl implements PaymentService {
                         FailedReason.INVALID_CVV.getMessage()
                 ));
             }
+
         } catch (Exception e) {
             log.error("Payment processing failed for orderId: {}, error: {}", event.orderId(), e.getMessage());
         }
