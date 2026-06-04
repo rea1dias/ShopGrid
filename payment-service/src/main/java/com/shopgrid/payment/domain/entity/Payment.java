@@ -57,8 +57,6 @@ public class Payment {
         this.userId = userId;
         this.amount = amount;
         this.currency = PaymentCurrency.KZT;
-        this.status = PaymentStatus.SUCCESS;
         this.provider = ProviderType.BANK;
     }
-
 }
