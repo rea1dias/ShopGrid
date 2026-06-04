@@ -14,7 +14,11 @@ dependencies {
     annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.5.Final'
     annotationProcessor 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
 
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.mockito:mockito-core'
+    testImplementation 'org.mockito:mockito-junit-jupiter'
     testCompileOnly 'org.projectlombok:lombok'
     testAnnotationProcessor 'org.projectlombok:lombok'
     testRuntimeOnly 'com.h2database:h2'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }

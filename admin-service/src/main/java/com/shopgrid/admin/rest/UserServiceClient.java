@@ -15,9 +15,13 @@ public class UserServiceClient {
     private final RestClient userServiceRestClient;
     private final HttpServletRequest request;
 
-    public UserResponse getUser(UUID id){
+    public UserResponse getUser(UUID id, String token){
         return userServiceRestClient.get()
                 .uri("/api/users/internal/{id}", id)
+                .header("token", token)
+                .header("X-User-Id", request.getHeader("X-User-Id"))
+                .header("X-User-Email", request.getHeader("X-User-Email"))
+                .header("X-User-Role", request.getHeader("X-User-Role"))
                 .retrieve()
                 .body(UserResponse.class);
     }

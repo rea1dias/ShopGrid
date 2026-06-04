@@ -1,5 +1,6 @@
 package com.shopgrid.admin.service.impl;
 
+import com.shopgrid.admin.domain.dto.response.UserResponse;
 import com.shopgrid.admin.rest.UserServiceClient;
 import com.shopgrid.admin.service.AdminService;
 import lombok.RequiredArgsConstructor;
@@ -15,4 +16,8 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     public void blockUser(UUID id, String token) {userServiceRestClient.blockUser(id, token);}
+
+    @Override
+    public UserResponse get(UUID id, String token) {return userServiceRestClient.getUser(id, token);}
+
 }
