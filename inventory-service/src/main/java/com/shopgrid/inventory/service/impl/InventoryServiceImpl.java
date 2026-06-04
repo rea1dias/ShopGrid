@@ -15,6 +15,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.interceptor.TransactionAspectSupport;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.UUID;
 
@@ -45,7 +47,14 @@ public class InventoryServiceImpl implements InventoryService {
             publisher.publishStockReserved(new StockReservedEvent(event.orderId(), event.userId(), event.totalPrice()));
         } catch (Exception e) {
             log.error("Failed to reserve stock for orderId: {}, error: {}", event.orderId(), e.getMessage());
+            markRollbackOnlyIfTransactionActive();
             publisher.publishStockFailed(new StockFailedEvent(event.orderId(), event.userId(), e.getMessage()));
+        }
+    }
+
+    private void markRollbackOnlyIfTransactionActive() {
+        if (TransactionSynchronizationManager.isActualTransactionActive()) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
         }
     }
 
