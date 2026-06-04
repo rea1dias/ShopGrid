@@ -7,7 +7,6 @@ import com.shopgrid.user.dto.request.UserRequest;
 import com.shopgrid.user.dto.response.UserResponse;
 import com.shopgrid.user.mapper.UserMapper;
 import com.shopgrid.user.repo.UserRepository;
-import com.shopgrid.user.service.UserService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -70,6 +69,5 @@ public class UserServiceImplTests {
         verify(userMapper).toEntity(request);
         verify(userRepository).save(any(User.class));
         verify(userMapper).toResponse(saved);
-
     }
 }
