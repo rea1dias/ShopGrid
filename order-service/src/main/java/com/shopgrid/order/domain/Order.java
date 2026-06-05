@@ -1,5 +1,6 @@
 package com.shopgrid.order.domain;
 
+import com.shopgrid.order.common.enums.CancelReason;
 import com.shopgrid.order.common.enums.OrderStatus;
 import jakarta.persistence.*;
 import lombok.*;
@@ -42,6 +43,10 @@ public class Order {
             cascade = CascadeType.ALL,
             orphanRemoval = true)
     private List<OrderItem> items = new ArrayList<>();
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = true)
+    private CancelReason cancelReason;
 
     public Order(UUID userId,
                  OrderStatus status,

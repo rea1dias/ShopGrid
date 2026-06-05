@@ -1,7 +1,9 @@
 package com.shopgrid.order.controller;
 
+import com.shopgrid.order.common.dto.request.CancelRequest;
 import com.shopgrid.order.common.dto.request.OrderRequest;
 import com.shopgrid.order.common.dto.response.OrderResponse;
+import com.shopgrid.order.common.enums.CancelReason;
 import com.shopgrid.order.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -36,6 +38,14 @@ public class OrderController {
                                                   Pageable pageable) {
         return ResponseEntity.status(HttpStatus.OK).body(service.getMyOrders(userId, pageable));
     }
+
+    @PostMapping("/cancel/{orderId}")
+    public ResponseEntity<OrderResponse> cancel(@PathVariable UUID orderId,
+                                                @RequestHeader("X-User-Id") UUID userId,
+                                                @RequestBody CancelRequest request) {
+        return ResponseEntity.status(HttpStatus.OK).body(service.cancel(orderId, userId, request.cancelReason()));
+    }
+
 
 
 }
