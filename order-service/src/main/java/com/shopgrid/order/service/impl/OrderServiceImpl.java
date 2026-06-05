@@ -7,14 +7,17 @@ import com.shopgrid.order.common.dto.request.ProductInfo;
 import com.shopgrid.order.common.dto.response.OrderItemResponse;
 import com.shopgrid.order.common.dto.response.OrderResponse;
 import com.shopgrid.order.common.dto.response.UserResponse;
+import com.shopgrid.order.common.enums.CancelReason;
 import com.shopgrid.order.common.enums.ChannelType;
 import com.shopgrid.order.common.enums.NotificationTemplateType;
 import com.shopgrid.order.common.enums.OrderStatus;
 import com.shopgrid.order.common.exception.AccessDeniedException;
 import com.shopgrid.order.common.exception.NotFoundException;
+import com.shopgrid.order.common.exception.OrderAlreadyException;
 import com.shopgrid.order.domain.Order;
 import com.shopgrid.order.domain.OrderItem;
 import com.shopgrid.order.event.NotificationEvent;
+import com.shopgrid.order.event.OrderCancelledEvent;
 import com.shopgrid.order.event.OrderCreatedEvent;
 import com.shopgrid.order.event.OrderItemEvent;
 import com.shopgrid.order.kafka.OrderEventPublisher;
@@ -79,6 +82,8 @@ public class OrderServiceImpl implements OrderService {
 
         Order saved = orderRepository.save(order);
 
+        log.info("Order status:{}", saved.getStatus());
+
         OrderCreatedEvent event = new OrderCreatedEvent(
                 saved.getId(),
                 saved.getUserId(),
@@ -94,6 +99,7 @@ public class OrderServiceImpl implements OrderService {
                 saved.getCreatedAt()
         );
 
+        log.info("Publishing event {}", event.orderId());
         publisher.publishOrderCreated(event);
 
         List<OrderItemResponse> responses = items.stream()
@@ -163,5 +169,38 @@ public class OrderServiceImpl implements OrderService {
     @Transactional
     public Page<OrderResponse> getMyOrders(UUID userId, Pageable pageable) {
         return orderRepository.findByUserId(userId, pageable).map(mapper::toResponse);
+    }
+
+    @Override
+    @Transactional
+    public OrderResponse cancel(UUID orderId, UUID userId, CancelReason reason) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new NotFoundException(orderId));
+        if (!userId.equals(order.getUserId())) {
+            throw new AccessDeniedException(userId);
+        }
+        if (OrderStatus.CANCELLED.equals(order.getStatus())) {
+            throw new  OrderAlreadyException(orderId);
+        }
+        order.setStatus(OrderStatus.CANCELLED);
+        order.setUpdatedAt(Instant.now());
+        order.setCancelReason(reason);
+        orderRepository.save(order);
+        log.info("Saved order: {}", order.getId());
+        OrderCancelledEvent event = new OrderCancelledEvent(
+                orderId,
+                userId,
+                order.getItems().stream()
+                        .map(item -> new OrderItemEvent(
+                                item.getProductId(),
+                                item.getProductName(),
+                                item.getPrice(),
+                                item.getQuantity()
+                        ))
+                        .toList(),
+                order.getTotalPrice(),
+                order.getCreatedAt());
+        publisher.publishCancelOrder(event);
+        return mapper.toResponse(order);
     }
 }

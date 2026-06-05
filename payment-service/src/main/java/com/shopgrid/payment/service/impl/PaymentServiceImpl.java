@@ -27,9 +27,6 @@ public class PaymentServiceImpl implements PaymentService {
     public void processPayment(StockReservedEvent event) {
         try {
             Payment payment = new Payment(event.orderId(),event.userId(),event.totalPrice());
-            if (event.totalPrice().compareTo(BigDecimal.valueOf(100000)) > 0) {
-                payment.setStatus(PaymentStatus.FAILED);
-            }
             paymentRepository.save(payment);
             if (payment.getStatus().equals(PaymentStatus.SUCCESS)) {
                 publisher.paymentSuccessEvent(new PaymentCompletedEvent(

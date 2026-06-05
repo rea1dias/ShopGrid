@@ -1,6 +1,7 @@
 package com.shopgrid.order.kafka;
 
 import com.shopgrid.order.event.NotificationEvent;
+import com.shopgrid.order.event.OrderCancelledEvent;
 import com.shopgrid.order.event.OrderCreatedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,5 +41,10 @@ public class OrderEventPublisher {
                         event.eventId(), ex.getMessage());
             }
         });
+    }
+
+    public void publishCancelOrder(OrderCancelledEvent event) {
+        log.info("Event published, cancel order event: {}", event.orderId());
+        kafkaTemplate.send("order.cancelled", event.orderId().toString(), event);
     }
 }

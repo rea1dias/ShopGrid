@@ -26,4 +26,9 @@ public class ApiExceptionHandler {
     public ErrorResponse handleServiceUnavailableException(ServiceUnavailableException e) {
         return new ErrorResponse(503, e.getMessage(), Instant.now());
     }
+
+    @ExceptionHandler(OrderAlreadyException.class)
+    public ErrorResponse handleOrderAlreadyException(OrderAlreadyException e) {
+        return new ErrorResponse(500, e.getMessage(), Instant.now());
+    }
 }
