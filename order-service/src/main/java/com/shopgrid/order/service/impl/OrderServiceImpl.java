@@ -201,6 +201,24 @@ public class OrderServiceImpl implements OrderService {
                 order.getTotalPrice(),
                 order.getCreatedAt());
         publisher.publishCancelOrder(event);
+
+        try {
+            UserResponse user = userServiceClient.getUser(order.getUserId());
+            NotificationEvent notificationEvent = new NotificationEvent(
+                    "order-cancelled-" + orderId,
+                    order.getUserId(),
+                    orderId,
+                    ChannelType.PUSH,
+                    NotificationTemplateType.ORDER_CONFIRMED,
+                    user.email(),
+                    order.getTotalPrice(),
+                    Map.of("user", user.firstName(), "reason", reason.name())
+            );
+            publisher.publishSendNotification(notificationEvent);
+        } catch (Exception e) {
+            log.warn("Could not send notification for orderId: {}", orderId);
+        }
+
         return mapper.toResponse(order);
     }
 }
