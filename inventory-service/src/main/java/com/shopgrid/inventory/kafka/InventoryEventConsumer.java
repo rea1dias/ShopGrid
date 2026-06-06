@@ -1,5 +1,6 @@
 package com.shopgrid.inventory.kafka;
 
+import com.shopgrid.inventory.event.OrderCancelledEvent;
 import com.shopgrid.inventory.event.OrderCreatedEvent;
 import com.shopgrid.inventory.event.ProductCreatedEvent;
 import com.shopgrid.inventory.service.InventoryService;
@@ -27,6 +28,13 @@ public class InventoryEventConsumer {
     public void handleProductCreated(ProductCreatedEvent event) {
         log.info("Received product created event: {}", event.productId());
         service.createInventory(event);
+    }
+
+    @KafkaListener(topics = "order.cancelled", groupId = "inventory-service",
+            properties = {"spring.json.value.default.type=com.shopgrid.inventory.event.OrderCancelledEvent"})
+    public void handleOrderCancelled(OrderCancelledEvent event) {
+        log.info("Received order cancelled event: {}", event.orderId());
+        service.releaseStock(event);
     }
 
 }

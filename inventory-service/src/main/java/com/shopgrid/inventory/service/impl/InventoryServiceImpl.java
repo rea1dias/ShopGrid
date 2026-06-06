@@ -50,6 +50,22 @@ public class InventoryServiceImpl implements InventoryService {
     }
 
     @Override
+    public void releaseStock(OrderCancelledEvent event) {
+        try {
+            for (OrderItemEvent item : event.items()) {
+                Inventory inventory = inventoryRepository.findByProductId(item.productId())
+                        .orElseThrow(() -> new NotFoundException(item.productId()));
+                inventory.setQuantity(inventory.getQuantity() + item.quantity());
+                inventory.setReserved(inventory.getReserved() - item.quantity());
+                inventoryRepository.save(inventory);
+                log.info("Released stock: {}", inventory.getReserved());
+            }
+        } catch (Exception e) {
+            log.error("Failed to release stock for orderId: {}, error: {}", event.orderId(), e.getMessage());
+        }
+    }
+
+    @Override
     public void createInventory(ProductCreatedEvent event) {
         if (inventoryRepository.findByProductId(event.productId()).isPresent()) {
             log.info("Inventory already exists: {}", event.productId());
