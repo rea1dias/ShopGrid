@@ -218,7 +218,6 @@ public class OrderServiceImpl implements OrderService {
         } catch (Exception e) {
             log.warn("Could not send notification for orderId: {}", orderId);
         }
-
         return mapper.toResponse(order);
     }
 }

@@ -39,9 +39,8 @@ resilience4j:
       productService:
         max-attempts: 3
         wait-duration: 500ms
-  timelimiter:
-    instances:
-      productService:
-        timeout-duration: 3s
+        retry-exceptions:
+          - org.springframework.web.client.ResourceAccessException
+          - org.springframework.web.client.HttpServerErrorException
 server:
   port: 8084
