@@ -27,6 +27,11 @@ public class ProductServiceClient {
         CircuitBreaker breaker = circuitBreakerRegistry.circuitBreaker("productService");
         Retry retry = retryRegistry.retry("productService");
 
+        breaker.getEventPublisher()
+                        .onStateTransition(
+                                event -> log.info("Circuit Breaker state: {} -> {}",
+                                        event.getStateTransition().getFromState(),
+                                        event.getStateTransition().getToState()));
         retry.getEventPublisher()
                 .onRetry(event -> log.info("Retry attempt: {}", event.getNumberOfRetryAttempts()))
                 .onError(event -> log.error("All retries failed: {}", event.getLastThrowable().getMessage()));
