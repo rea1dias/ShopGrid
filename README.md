@@ -386,9 +386,110 @@ shopgrid/
 - [ ] Add Helm charts
 - [ ] Deploy locally with Minikube or Kind
 
+## Getting Started
+
+### Prerequisites
+
+Make sure you have the following installed:
+
+- [Docker](https://www.docker.com/get-started) (version 20+)
+- [Docker Compose](https://docs.docker.com/compose/install/) (version 2+)
+- [Java 21](https://adoptium.net/)
+- [Gradle](https://gradle.org/install/) (or use the included `./gradlew` wrapper)
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/rea1dias/ShopGrid.git
+cd ShopGrid
+```
+
+### 2. Start infrastructure
+
+This starts PostgreSQL, Redis, Kafka, Elasticsearch, Kafka UI, and Kibana:
+
+```bash
+cd infrastructure/docker-compose
+docker-compose up -d
+```
+
+Wait about 30 seconds for all services to be ready.
+
+### 3. Build all services
+
+Go back to the project root and build:
+
+```bash
+cd ../..
+./gradlew build -x test
+```
+
+### 4. Run a service
+
+Each service can be started individually. For example, to start the Auth Service:
+
+```bash
+cd auth-service
+../gradlew bootRun
+```
+
+Or run any service from IntelliJ IDEA by running its `Application` main class.
+
+### Infrastructure ports
+
+| Service        | URL                          |
+|----------------|------------------------------|
+| API Gateway    | http://localhost:8080        |
+| Auth Service   | http://localhost:8081        |
+| User Service   | http://localhost:8082        |
+| Product Service| http://localhost:8083        |
+| Order Service  | http://localhost:8084        |
+| Payment Service| http://localhost:8085        |
+| Inventory Service | http://localhost:8086     |
+| Notification Service | http://localhost:8087  |
+| Search Service | http://localhost:8088        |
+| Admin Service  | http://localhost:8089        |
+| PostgreSQL     | localhost:5432               |
+| Redis          | localhost:6379               |
+| Kafka          | localhost:9092               |
+| Kafka UI       | http://localhost:1212        |
+| Elasticsearch  | http://localhost:9200        |
+| Kibana         | http://localhost:5601        |
+
+### Quick API test
+
+Register a user:
+
+```bash
+curl -X POST http://localhost:8080/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"email": "test@example.com", "password": "password123", "firstName": "John", "lastName": "Doe"}'
+```
+
+Login:
+
+```bash
+curl -X POST http://localhost:8080/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email": "test@example.com", "password": "password123"}'
+```
+
+### Stop infrastructure
+
+```bash
+cd infrastructure/docker-compose
+docker-compose down
+```
+
+To also remove saved data:
+
+```bash
+docker-compose down -v
+```
+
 ## Current Status
 
-This project is in the planning and initial development stage.
+Stages 1, 2, and 3 are complete. All core services are implemented and running. Stage 4 (Reliability) is in progress.
 
 ## Note
 
