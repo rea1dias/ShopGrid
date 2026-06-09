@@ -54,6 +54,5 @@ public class ProductServiceClient {
     private ProductInfo fallback(UUID id, Throwable throwable) {
         log.error(throwable.getMessage(), throwable);
         throw new ServiceUnavailableException("Product service is unavailable");
-
     }
 }
