@@ -13,8 +13,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
-
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -27,6 +25,10 @@ public class PaymentServiceImpl implements PaymentService {
     public void processPayment(StockReservedEvent event) {
         try {
             Payment payment = new Payment(event.orderId(),event.userId(),event.totalPrice());
+            if (paymentRepository.existsByOrderId(event.orderId())) {
+                log.warn("Payment already exists for orderId: {}, skipping", event.orderId());
+                return;
+            }
             paymentRepository.save(payment);
             if (payment.getStatus().equals(PaymentStatus.SUCCESS)) {
                 publisher.paymentSuccessEvent(new PaymentCompletedEvent(

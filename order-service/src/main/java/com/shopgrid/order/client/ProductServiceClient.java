@@ -6,10 +6,13 @@ import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import io.github.resilience4j.retry.Retry;
 import io.github.resilience4j.retry.RetryRegistry;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.util.UUID;
 import java.util.function.Supplier;
@@ -41,6 +44,16 @@ public class ProductServiceClient {
         Supplier<ProductInfo> supplier = CircuitBreaker.decorateSupplier(breaker,
                 () -> restClient.get()
                         .uri("/api/products/{id}", id)
+                        .headers(headers -> {
+                            ServletRequestAttributes attrs =
+                                    (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+                            if (attrs != null) {
+                                HttpServletRequest req = attrs.getRequest();
+                                headers.add("X-User-Id",    req.getHeader("X-User-Id"));
+                                headers.add("X-User-Email", req.getHeader("X-User-Email"));
+                                headers.add("X-User-Role",  req.getHeader("X-User-Role"));
+                            }
+                        })
                         .retrieve()
                         .body(ProductInfo.class));
         supplier = Retry.decorateSupplier(retry, supplier);
