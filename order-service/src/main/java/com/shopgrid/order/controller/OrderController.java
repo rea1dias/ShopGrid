@@ -4,6 +4,7 @@ import com.shopgrid.order.common.dto.request.CancelRequest;
 import com.shopgrid.order.common.dto.request.OrderRequest;
 import com.shopgrid.order.common.dto.response.OrderResponse;
 import com.shopgrid.order.service.OrderService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -21,7 +22,7 @@ public class OrderController {
     private final OrderService service;
 
     @PostMapping
-    public ResponseEntity<OrderResponse> create(@RequestHeader("X-User-Id") UUID userId, @RequestBody OrderRequest request) {
+    public ResponseEntity<OrderResponse> create(@RequestHeader("X-User-Id") UUID userId, @Valid @RequestBody OrderRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.create(request, userId));
     }
 
