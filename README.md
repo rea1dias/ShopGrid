@@ -365,11 +365,11 @@ shopgrid/
 
 ### Stage 4: Reliability
 
-- [ ] Add Resilience4j
-- [ ] Add timeout
-- [ ] Add retry
-- [ ] Add circuit breaker
-- [ ] Add idempotency for payment requests
+- [x] Add Resilience4j
+- [x] Add timeout
+- [x] Add retry
+- [x] Add circuit breaker
+- [x] Add idempotency for payment requests
 
 ### Stage 5: Observability
 
