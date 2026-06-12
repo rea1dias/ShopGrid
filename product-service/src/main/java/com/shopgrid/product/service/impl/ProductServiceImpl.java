@@ -16,7 +16,6 @@ import com.shopgrid.product.repo.ProductRepository;
 import com.shopgrid.product.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -52,43 +51,28 @@ public class ProductServiceImpl implements ProductService {
         product.setSellerId(sellerId);
         log.info("Product: {}", product);
         Product saved = productRepository.save(product);
-        ProductCreatedEvent event = new ProductCreatedEvent(
-                saved.getId(),
-                saved.getName(),
-                saved.getDescription(),
-                saved.getPrice(),
-                saved.getSku(),
-                saved.getStatus().name(),
-                saved.getCategories().stream()
-                        .map(Category::getName)
-                        .toList()
-        );
+        ProductCreatedEvent event = new ProductCreatedEvent(saved.getId(), saved.getName(), saved.getDescription(), saved.getPrice(), saved.getSku(), saved.getStatus().name(), saved.getCategories().stream().map(Category::getName).toList());
         publisher.publishProductCreated(event);
         return productMapper.toResponse(saved);
     }
 
     @Override
     public Page<ProductResponse> getAll(Pageable pageable) {
-        return productRepository.findAll(pageable)
-                .map(productMapper::toResponse);
+        return productRepository.findAll(pageable).map(productMapper::toResponse);
     }
 
-    @Cacheable(value = "products", key = "#id")
     @Override
     @Transactional
     public ProductResponse findById(UUID id) {
-        Product product = productRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Product not found"));
+        Product product = productRepository.findById(id).orElseThrow(() -> new NotFoundException("Product not found"));
         return productMapper.toResponse(product);
     }
 
-    @Cacheable(value = "products", key = "#id")
     @Override
     @Transactional
     @PreAuthorize("hasRole('SELLER') or hasRole('ADMIN')")
     public ProductResponse update(UpdateProductRequest request, UUID id, UUID sellerId) {
-        Product product = productRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Product not found"));
+        Product product = productRepository.findById(id).orElseThrow(() -> new NotFoundException("Product not found"));
         if (!product.getSellerId().equals(sellerId)) {
             throw new AccessDeniedException("Only product owner can update product");
         }
@@ -101,12 +85,10 @@ public class ProductServiceImpl implements ProductService {
         return productMapper.toResponse(productRepository.save(product));
     }
 
-    @Cacheable(value = "products", key = "#id")
     @Override
     @PreAuthorize("hasRole('ADMIN')")
     public void delete(UUID id, UUID sellerId) {
-        Product product = productRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Product not found"));
+        Product product = productRepository.findById(id).orElseThrow(() -> new NotFoundException("Product not found"));
         if (!product.getSellerId().equals(sellerId)) {
             throw new AccessDeniedException("Only product owner can delete product");
         }
@@ -115,11 +97,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional
-    public Page<ProductResponse> getProductsByFilter(String name,
-                                                     UUID categoryId,
-                                                     BigDecimal minPrice,
-                                                     BigDecimal maxPrice,
-                                                     ProductStatus status, Pageable pageable) {
+    public Page<ProductResponse> getProductsByFilter(String name, UUID categoryId, BigDecimal minPrice, BigDecimal maxPrice, ProductStatus status, Pageable pageable) {
         Specification<Product> spec = ProductSpecification.filter(name, categoryId, minPrice, maxPrice, status);
         Page<Product> products = productRepository.findAll(spec, pageable);
         return products.map(productMapper::toResponse);

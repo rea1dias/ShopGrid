@@ -27,5 +27,4 @@ public class InventoryController {
     public ResponseEntity<InventoryResponse> get(@PathVariable("productId") UUID productId) {
         return ResponseEntity.status(HttpStatus.OK).body(service.get(productId));
     }
-
 }
