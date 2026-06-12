@@ -1,6 +1,5 @@
 package com.shopgrid.order.client;
 
-import com.shopgrid.order.common.dto.request.ProductInfo;
 import com.shopgrid.order.common.dto.response.UserResponse;
 import com.shopgrid.order.common.exception.ServiceUnavailableException;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;

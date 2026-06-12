@@ -16,4 +16,11 @@ public class ApiExceptionHandler {
     public ErrorResponse handleNotFound(NotFoundException exception) {
         return new ErrorResponse("NOT_FOUND", exception.getMessage(), Instant.now());
     }
+
+    @ExceptionHandler(value = ServiceUnavailableException.class)
+    @ResponseStatus(HttpStatus.SERVICE_UNAVAILABLE)
+    public ErrorResponse handleServiceUnavailable(ServiceUnavailableException exception) {
+        return new ErrorResponse("SERVICE_UNAVAILABLE", exception.getMessage(), Instant.now());
+    }
+
 }
