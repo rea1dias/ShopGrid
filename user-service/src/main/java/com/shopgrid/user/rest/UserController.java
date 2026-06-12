@@ -1,7 +1,6 @@
 package com.shopgrid.user.rest;
 
 import com.shopgrid.user.domain.model.AccountStatus;
-import com.shopgrid.user.domain.model.Role;
 import com.shopgrid.user.dto.request.UpdateUserRequest;
 import com.shopgrid.user.dto.request.UserRequest;
 import com.shopgrid.user.dto.response.UserResponse;

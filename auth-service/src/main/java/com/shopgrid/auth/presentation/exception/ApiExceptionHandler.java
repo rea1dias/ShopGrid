@@ -2,6 +2,7 @@ package com.shopgrid.auth.presentation.exception;
 
 import com.shopgrid.auth.application.EmailAlreadyUsedException;
 import com.shopgrid.auth.application.NotFoundException;
+import com.shopgrid.auth.application.ServiceUnavailableException;
 import com.shopgrid.auth.application.UnauthorizedException;
 import com.shopgrid.auth.presentation.dto.response.ErrorResponse;
 import com.shopgrid.auth.presentation.dto.response.ValidationErrorResponse;
@@ -41,6 +42,12 @@ public class ApiExceptionHandler {
     @ExceptionHandler(NotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ErrorResponse handleNotFound(NotFoundException exception) {
+        return new ErrorResponse("NOT_FOUND", exception.getMessage(), Instant.now());
+    }
+
+    @ExceptionHandler(ServiceUnavailableException.class)
+    @ResponseStatus(HttpStatus.SERVICE_UNAVAILABLE)
+    public ErrorResponse handleNotFound(ServiceUnavailableException exception) {
         return new ErrorResponse("NOT_FOUND", exception.getMessage(), Instant.now());
     }
 
