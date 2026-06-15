@@ -59,3 +59,15 @@ resilience4j:
           - org.springframework.web.client.HttpServerErrorException
 server:
   port: 8084
+
+user-service:
+  url: ${USER_SERVICE_URL:http://localhost:8082}
+
+product-service:
+  url: ${PRODUCT_SERVICE_URL:http://localhost:8083}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
