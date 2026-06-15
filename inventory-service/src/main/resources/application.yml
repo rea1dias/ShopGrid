@@ -29,3 +29,13 @@ spring:
         format_sql: true
 server:
   port: 8086
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, prometheus, metrics
+  prometheus:
+    metrics:
+      export:
+        enabled: true

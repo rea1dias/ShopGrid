@@ -23,6 +23,7 @@ public class SecurityConfig {
                         auth -> auth
                                 .requestMatchers("/api/products/**", "/api/categories/**").permitAll()
                                 .requestMatchers("/api/products/seller/**").hasRole("SELLER")
+                                .requestMatchers("/actuator/**").permitAll()
                                 .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
