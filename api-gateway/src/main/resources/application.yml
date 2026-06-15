@@ -71,10 +71,11 @@ security:
     access-token-ttl: ${JWT_ACCESS_TOKEN_TTL:PT1H}
 
 management:
-  health:
-    redis:
-      enabled: true
   endpoints:
     web:
       exposure:
-        include: health, info
+        include: health, info, prometheus, metrics
+  prometheus:
+    metrics:
+      export:
+        enabled: true
