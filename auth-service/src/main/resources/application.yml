@@ -16,6 +16,9 @@ spring:
 server:
   port: 8081
 
+user-service:
+  url: ${USER_SERVICE_URL:http://localhost:8082}
+
 security:
   jwt:
     secret: ${JWT_SECRET:shopgrid-development-secret-key-change-before-production-please-keep-it-long}

@@ -3,3 +3,9 @@ spring:
     name: admin-service
 server:
   port: 9001
+
+user-service:
+  url: ${USER_SERVICE_URL:http://localhost:8082}
+
+product-service:
+  url: ${PRODUCT_SERVICE_URL:http://localhost:8083}
