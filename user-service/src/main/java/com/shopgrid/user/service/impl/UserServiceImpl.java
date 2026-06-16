@@ -37,16 +37,14 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserResponse get(String email) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new NotFoundException("User not found"));
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new NotFoundException("User not found"));
         return userMapper.toResponse(user);
     }
 
     @Override
     @Transactional
     public UserResponse update(String email, UpdateUserRequest request) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new NotFoundException("User not found"));
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new NotFoundException("User not found"));
         user.setFirstName(request.firstName());
         user.setLastName(request.lastName());
         user.setPhoneNumber(request.phoneNumber());
@@ -56,16 +54,13 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserResponse getById(UUID id) {
-        return userMapper.toResponse(
-                userRepository.findById(id)
-                        .orElseThrow(() -> new NotFoundException("User not found")));
+        return userMapper.toResponse(userRepository.findById(id).orElseThrow(() -> new NotFoundException("User not found")));
     }
 
     @Override
     @PreAuthorize("hasRole('ADMIN')")
     public Page<UserResponse> getAll(Pageable pageable) {
-        return userRepository.findAll(pageable)
-                .map(userMapper::toResponse);
+        return userRepository.findAll(pageable).map(userMapper::toResponse);
     }
 
     @Override
@@ -81,8 +76,7 @@ public class UserServiceImpl implements UserService {
     @PreAuthorize("hasRole('ADMIN')")
     @Transactional
     public void block(UUID id, String token) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("User not found"));
+        User user = userRepository.findById(id).orElseThrow(() -> new NotFoundException("User not found"));
         if (user.getStatus() == AccountStatus.BLOCKED) {
             return;
         }
