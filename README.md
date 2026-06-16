@@ -2,7 +2,7 @@
 
 **ShopGrid** is a pet project for learning and practicing microservice architecture with Java and Spring Boot.
 
-The goal of this project is not to build a real production marketplace, but to create a realistic backend system that demonstrates modern backend patterns: service decomposition, API Gateway, authentication, event-driven communication, distributed tracing, metrics, centralized logs, Docker, Kubernetes, and Helm.
+The goal of this project is not to build a real production marketplace, but to create a realistic backend system that demonstrates modern backend patterns: service decomposition, API Gateway, authentication, event-driven communication, distributed tracing, metrics, Docker, and fault tolerance.
 
 ## Project Idea
 
@@ -14,24 +14,24 @@ Each service has its own responsibility and can be developed, tested, and deploy
 
 ```mermaid
 flowchart TD
-    Client[Client Web / Mobile] --> Gateway[API Gateway]
+    Client[Client Web / Mobile] --> Gateway[API Gateway :8080]
 
-    Gateway --> Auth[Auth Service]
-    Gateway --> User[User Service]
-    Gateway --> Product[Product Service]
-    Gateway --> Order[Order Service]
-    Gateway --> Payment[Payment Service]
+    Gateway --> Auth[Auth Service :8081]
+    Gateway --> User[User Service :8082]
+    Gateway --> Product[Product Service :8083]
+    Gateway --> Order[Order Service :8084]
+    Gateway --> Payment[Payment Service :8090]
+    Gateway --> Admin[Admin Service :9001]
 
-    Order --> Kafka[Apache Kafka Event Bus]
+    Order --> Kafka[Apache Kafka]
     Payment --> Kafka
     Product --> Kafka
 
-    Kafka --> Inventory[Inventory Service]
-    Kafka --> Notification[Notification Service]
-    Kafka --> Search[Search Service]
+    Kafka --> Inventory[Inventory Service :8086]
+    Kafka --> Notification[Notification Service :8087]
+    Kafka --> Search[Search Service :8089]
 
-    Product --> Elasticsearch[(Elasticsearch)]
-    Search --> Elasticsearch
+    Search --> Elasticsearch[(Elasticsearch)]
 
     Auth --> PostgreSQL[(PostgreSQL)]
     User --> PostgreSQL
@@ -39,363 +39,81 @@ flowchart TD
     Order --> PostgreSQL
     Payment --> PostgreSQL
     Inventory --> PostgreSQL
+    Notification --> PostgreSQL
 
     Gateway --> Redis[(Redis)]
+
+    Auth -.->|REST| User
+    User -.->|REST| Auth
+    Order -.->|REST| Product
+    Order -.->|REST| User
 ```
-
-## Main Goals
-
-- Learn how to design a microservice system
-- Practice Spring Boot and Spring Cloud
-- Use API Gateway for request routing
-- Implement JWT-based authentication
-- Use Kafka for asynchronous communication
-- Use PostgreSQL as a database per service
-- Add Redis for cache and rate limiting
-- Add Elasticsearch for product search
-- Add Docker Compose for local development
-- Add Kubernetes and Helm for deployment practice
-- Add observability with metrics, logs, and tracing
-
-## Services
-
-### API Gateway
-
-Routes external requests to internal services.
-
-Planned features:
-
-- Service routing
-- JWT validation
-- Rate limiting
-- Centralized entry point for clients
-
-Tech:
-
-- Spring Cloud Gateway
-- Redis
-- JWT
-
-### Auth Service
-
-Responsible for authentication and authorization.
-
-Planned features:
-
-- User registration
-- Login
-- JWT token generation
-- Password hashing
-- Basic role-based access control
-
-Tech:
-
-- Spring Boot
-- Spring Security
-- PostgreSQL
-- JWT
-
-### User Service
-
-Responsible for user profile data.
-
-Planned features:
-
-- User profile management
-- User roles
-- User status
-- Basic user administration
-
-Tech:
-
-- Spring Boot
-- PostgreSQL
-
-### Product Service
-
-Responsible for product catalog management.
-
-Planned features:
-
-- Create, update, and delete products
-- Product categories
-- Product details
-- Publish product-related events
-
-Tech:
-
-- Spring Boot
-- PostgreSQL
-- Kafka
-
-### Search Service
-
-Responsible for full-text product search.
-
-Planned features:
-
-- Index products from Kafka events
-- Search products by name and description
-- Filter products by category and price
-
-Tech:
-
-- Spring Boot
-- Elasticsearch
-- Kafka
-
-### Order Service
-
-Responsible for order creation and order lifecycle.
-
-Planned features:
-
-- Create orders
-- Change order status
-- Publish `order.created` events
-- Implement a simple saga-style flow with payment and inventory
-
-Tech:
-
-- Spring Boot
-- PostgreSQL
-- Kafka
-- Resilience4j
-
-### Payment Service
-
-Responsible for payment simulation.
-
-Planned features:
-
-- Simulate payment processing
-- Support idempotency keys
-- Publish `payment.completed` and `payment.failed` events
-
-Tech:
-
-- Spring Boot
-- PostgreSQL
-- Kafka
-- Resilience4j
-
-### Inventory Service
-
-Responsible for stock management.
-
-Planned features:
-
-- Store product stock
-- Reserve stock
-- Release stock
-- Use optimistic locking
-
-Tech:
-
-- Spring Boot
-- PostgreSQL
-- Kafka
-
-### Notification Service
-
-Responsible for user notifications.
-
-Planned features:
-
-- Listen to Kafka events
-- Send email-like notifications
-- Store notification history
-- Use notification templates
-
-Tech:
-
-- Spring Boot
-- Kafka
-
-### Admin Service
-
-Responsible for simple admin operations.
-
-Planned features:
-
-- View users
-- View orders
-- View payments
-- Basic reports
-
-Tech:
-
-- Spring Boot
-- PostgreSQL
 
 ## Technology Stack
 
 ### Backend
-
-- Java
-- Spring Boot
+- Java 17
+- Spring Boot 3.x
 - Spring Web
 - Spring Security
 - Spring Data JPA
 - Spring Cloud Gateway
-- Spring Cloud OpenFeign
-- Resilience4j
+- Resilience4j (CircuitBreaker, Retry, TimeLimiter)
 
 ### Databases and Storage
-
-- PostgreSQL
-- Redis
-- Elasticsearch
+- PostgreSQL (separate DB per service)
+- Redis (rate limiting)
+- Elasticsearch (product search)
 
 ### Messaging
-
 - Apache Kafka
 
-### Infrastructure
+### Observability
+- Prometheus (metrics collection)
+- Grafana (metrics visualization)
+- Jaeger (distributed tracing)
 
+### Infrastructure
 - Docker
 - Docker Compose
-- Kubernetes
-- Helm
 
-### Observability
+## Services
 
-- Prometheus
-- Grafana
-- Jaeger
-- ELK Stack
+| Service | Port | Description |
+|---------|------|-------------|
+| API Gateway | 8080 | Routes requests, JWT validation, rate limiting |
+| Auth Service | 8081 | Registration, login, JWT tokens |
+| User Service | 8082 | User profiles |
+| Product Service | 8083 | Product catalog, categories |
+| Order Service | 8084 | Order creation and lifecycle |
+| Payment Service | 8090 | Payment simulation with idempotency |
+| Inventory Service | 8086 | Stock management |
+| Notification Service | 8087 | Email-like notifications via Kafka |
+| Search Service | 8089 | Full-text product search via Elasticsearch |
+| Admin Service | 9001 | Admin operations |
 
-## Why These Technologies Are Used
+## Infrastructure Ports
 
-### Docker
-
-Used to run services and infrastructure locally in containers.
-
-### Docker Compose
-
-Used for local development, so PostgreSQL, Redis, Kafka, and Elasticsearch can be started with one command.
-
-### Kubernetes
-
-Used to practice container orchestration and deployment.
-
-### Helm
-
-Used to package and manage Kubernetes manifests in a cleaner way.
-
-### Prometheus
-
-Used to collect metrics from services, such as request count, error count, response time, and memory usage.
-
-### Grafana
-
-Used to visualize Prometheus metrics in dashboards.
-
-### Jaeger
-
-Used for distributed tracing. It helps understand how one request travels between multiple services.
-
-### ELK Stack
-
-Used for centralized logging. Instead of checking logs in every service separately, all logs can be collected and searched in one place.
-
-### Resilience4j
-
-Used for fault tolerance between services.
-
-Planned patterns:
-
-- Timeout
-- Retry
-- Circuit breaker
-
-## Repository Structure
-
-Planned structure:
-
-```text
-shopgrid/
-├── api-gateway/
-├── auth-service/
-├── user-service/
-├── product-service/
-├── search-service/
-├── order-service/
-├── payment-service/
-├── inventory-service/
-├── notification-service/
-├── admin-service/
-├── common/
-├── infrastructure/
-│   ├── docker-compose/
-│   ├── kubernetes/
-│   └── helm/
-├── docs/
-└── README.md
-```
-
-## Development Plan
-
-### Stage 1: Foundation
-
-- [x] Create repository structure
-- [x] Add common Gradle or Maven configuration
-- [x] Add Docker Compose for PostgreSQL, Kafka, Redis, and Elasticsearch
-- [x] Create API Gateway
-- [x] Create Auth Service
-- [x] Implement JWT authentication
-
-### Stage 2: Core E-commerce
-
-- [x] Create User Service
-- [x] Create Product Service
-- [x] Create Order Service
-- [x] Create Inventory Service
-- [x] Add basic REST APIs
-- [x] Add PostgreSQL database per service
-
-### Stage 3: Events
-
-- [x] Add Kafka
-- [x] Publish `order.created`
-- [x] Publish `payment.completed`
-- [x] Publish `stock.reserved`
-- [x] Add Notification Service
-- [x] Add Search Service indexing from Kafka events
-
-### Stage 4: Reliability
-
-- [x] Add Resilience4j
-- [x] Add timeout
-- [x] Add retry
-- [x] Add circuit breaker
-- [x] Add idempotency for payment requests
-
-### Stage 5: Observability
-
-- [ ] Add structured logging
-- [ ] Add Prometheus metrics
-- [ ] Add Grafana dashboard
-- [ ] Add Jaeger tracing
-- [ ] Add ELK logging setup
-
-### Stage 6: Deployment Practice
-
-- [ ] Add Dockerfiles for services
-- [ ] Add Kubernetes manifests
-- [ ] Add Helm charts
-- [ ] Deploy locally with Minikube or Kind
+| Service | URL |
+|---------|-----|
+| API Gateway | http://localhost:8080 |
+| Kafka UI | http://localhost:1212 |
+| Elasticsearch | http://localhost:9200 |
+| Kibana | http://localhost:5601 |
+| Prometheus | http://localhost:9090 |
+| Grafana | http://localhost:3000 |
+| Jaeger UI | http://localhost:16686 |
+| PostgreSQL | localhost:5432 |
+| Redis | localhost:6379 |
+| Kafka | localhost:9092 |
 
 ## Getting Started
 
 ### Prerequisites
 
-Make sure you have the following installed:
-
 - [Docker](https://www.docker.com/get-started) (version 20+)
 - [Docker Compose](https://docs.docker.com/compose/install/) (version 2+)
-- [Java 21](https://adoptium.net/)
-- [Gradle](https://gradle.org/install/) (or use the included `./gradlew` wrapper)
+- [Java 17](https://adoptium.net/)
 
 ### 1. Clone the repository
 
@@ -404,61 +122,43 @@ git clone https://github.com/rea1dias/ShopGrid.git
 cd ShopGrid
 ```
 
-### 2. Start infrastructure
-
-This starts PostgreSQL, Redis, Kafka, Elasticsearch, Kafka UI, and Kibana:
+### 2. Build all services
 
 ```bash
-cd infrastructure/docker-compose
-docker-compose up -d
+./gradlew clean build -x test
 ```
 
-Wait about 30 seconds for all services to be ready.
-
-### 3. Build all services
-
-Go back to the project root and build:
+### 3. Start everything
 
 ```bash
-cd ../..
-./gradlew build -x test
+docker-compose -f infrastructure/docker-compose/docker-compose.yml up --build -d
 ```
 
-### 4. Run a service
+Wait about 60 seconds for all services to start.
 
-Each service can be started individually. For example, to start the Auth Service:
+### 4. Verify
 
 ```bash
-cd auth-service
-../gradlew bootRun
+docker ps
 ```
 
-Or run any service from IntelliJ IDEA by running its `Application` main class.
+All containers should be `Up`.
 
-### Infrastructure ports
+### Stop
 
-| Service        | URL                          |
-|----------------|------------------------------|
-| API Gateway    | http://localhost:8080        |
-| Auth Service   | http://localhost:8081        |
-| User Service   | http://localhost:8082        |
-| Product Service| http://localhost:8083        |
-| Order Service  | http://localhost:8084        |
-| Payment Service| http://localhost:8085        |
-| Inventory Service | http://localhost:8086     |
-| Notification Service | http://localhost:8087  |
-| Search Service | http://localhost:8088        |
-| Admin Service  | http://localhost:8089        |
-| PostgreSQL     | localhost:5432               |
-| Redis          | localhost:6379               |
-| Kafka          | localhost:9092               |
-| Kafka UI       | http://localhost:1212        |
-| Elasticsearch  | http://localhost:9200        |
-| Kibana         | http://localhost:5601        |
+```bash
+docker-compose -f infrastructure/docker-compose/docker-compose.yml down
+```
 
-### Quick API test
+To also remove saved data:
 
-Register a user:
+```bash
+docker-compose -f infrastructure/docker-compose/docker-compose.yml down -v
+```
+
+## Quick API Test
+
+### Register
 
 ```bash
 curl -X POST http://localhost:8080/api/auth/register \
@@ -466,7 +166,7 @@ curl -X POST http://localhost:8080/api/auth/register \
   -d '{"email": "test@example.com", "password": "password123", "firstName": "John", "lastName": "Doe"}'
 ```
 
-Login:
+### Login
 
 ```bash
 curl -X POST http://localhost:8080/api/auth/login \
@@ -474,22 +174,76 @@ curl -X POST http://localhost:8080/api/auth/login \
   -d '{"email": "test@example.com", "password": "password123"}'
 ```
 
-### Stop infrastructure
+### Create Product (use token from login)
 
 ```bash
-cd infrastructure/docker-compose
-docker-compose down
+curl -X POST http://localhost:8080/api/products \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "iPhone 15", "price": 999.99, "description": "Apple iPhone 15", "categoryId": 1}'
 ```
 
-To also remove saved data:
+### Create Order
 
 ```bash
-docker-compose down -v
+curl -X POST http://localhost:8080/api/orders \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{"items": [{"productId": "<product-id>", "quantity": 1}]}'
 ```
+
+## Observability
+
+### Grafana Dashboards
+1. Open http://localhost:3000 (admin/admin)
+2. Go to Dashboards → Import
+3. Enter ID: `19004` → Load
+4. Select Prometheus datasource → Import
+
+### Jaeger Tracing
+1. Open http://localhost:16686
+2. Select a service from dropdown
+3. Click **Find Traces**
+
+## Development Plan
+
+### Stage 1: Foundation
+- [x] API Gateway with JWT validation and rate limiting
+- [x] Auth Service with JWT access/refresh tokens
+- [x] Docker Compose for infrastructure
+
+### Stage 2: Core E-commerce
+- [x] User, Product, Order, Inventory, Payment services
+- [x] Separate PostgreSQL database per service
+- [x] REST APIs
+
+### Stage 3: Events
+- [x] Kafka event bus
+- [x] order.created, payment.completed, stock.reserved events
+- [x] Notification Service
+- [x] Search Service with Elasticsearch indexing
+
+### Stage 4: Reliability
+- [x] Resilience4j CircuitBreaker
+- [x] Retry with exponential backoff
+- [x] TimeLimiter (timeout)
+- [x] Payment idempotency
+- [x] Admin Service
+
+### Stage 5: Observability
+- [x] Prometheus metrics
+- [x] Grafana dashboards
+- [x] Jaeger distributed tracing
+
+### Stage 6: Deployment
+- [x] Dockerfile for all services
+- [x] Docker Compose production setup
+- [ ] Kubernetes manifests
+- [ ] Helm charts
 
 ## Current Status
 
-Stages 1, 2, and 3 are complete. All core services are implemented and running. Stage 4 (Reliability) is in progress.
+Stages 1–6 (Docker) are complete. All services are implemented, running in Docker, and fully observable via Prometheus, Grafana, and Jaeger.
 
 ## Note
 
