@@ -58,23 +58,15 @@ public class OrderServiceImpl implements OrderService {
             ProductInfo product = productServiceClient.getProductInfo(itemRequest.productId());
             return OrderItem.builder().productId(itemRequest.productId()).productName(product.name()).price(product.price()).quantity(itemRequest.quantity()).build();
         }).toList();
-
         BigDecimal totalPrice = items.stream().map(item -> item.getPrice().multiply(BigDecimal.valueOf(item.getQuantity()))).reduce(BigDecimal.ZERO, BigDecimal::add);
-
         Order order = new Order(userId, OrderStatus.PENDING, totalPrice, items, Instant.now(), Instant.now());
         items.forEach(item -> item.setOrder(order));
-
         Order saved = orderRepository.save(order);
-
         log.info("Order status:{}", saved.getStatus());
-
         OrderCreatedEvent event = new OrderCreatedEvent(saved.getId(), saved.getUserId(), items.stream().map(item -> new OrderItemEvent(item.getProductId(), item.getProductName(), item.getPrice(), item.getQuantity())).toList(), totalPrice, saved.getCreatedAt());
-
         log.info("Publishing event {}", event.orderId());
         publisher.publishOrderCreated(event);
-
         List<OrderItemResponse> responses = items.stream().map(item -> new OrderItemResponse(item.getProductId(), item.getProductName(), item.getPrice(), item.getQuantity())).toList();
-
         return new OrderResponse(saved.getId(), saved.getUserId(), saved.getStatus(), saved.getTotalPrice(), saved.getCreatedAt(), saved.getUpdatedAt(), responses);
     }
 

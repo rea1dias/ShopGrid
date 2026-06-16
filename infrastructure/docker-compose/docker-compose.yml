@@ -123,6 +123,17 @@ services:
     networks:
       - shopgrid-network
 
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: shopgrid-jaeger
+    ports:
+      - "16686:16686"
+      - "4318:4318"
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
+    networks:
+      - shopgrid-network
+
   #Services
 
   auth-service:
@@ -140,6 +151,7 @@ services:
       AUTH_DB_PASSWORD: shopgrid
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
       USER_SERVICE_URL: http://user-service:8082
+      JAEGER_ENDPOINT: http://jaeger:4318/v1/traces
     depends_on:
       postgres:
         condition: service_healthy
@@ -162,6 +174,7 @@ services:
       USER_DB_USERNAME: shopgrid
       USER_DB_PASSWORD: shopgrid
       AUTH_SERVICE_URL: http://auth-service:8081
+      JAEGER_ENDPOINT: http://jaeger:4318/v1/traces
     depends_on:
       postgres:
         condition: service_healthy
@@ -182,6 +195,7 @@ services:
       PRODUCT_DB_USERNAME: shopgrid
       PRODUCT_DB_PASSWORD: shopgrid
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      JAEGER_ENDPOINT: http://jaeger:4318/v1/traces
     depends_on:
       postgres:
         condition: service_healthy
@@ -206,6 +220,7 @@ services:
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
       PRODUCT_SERVICE_URL: http://product-service:8083
       USER_SERVICE_URL: http://user-service:8082
+      JAEGER_ENDPOINT: http://jaeger:4318/v1/traces
     depends_on:
       postgres:
         condition: service_healthy
@@ -228,6 +243,7 @@ services:
       PAYMENT_DB_USERNAME: shopgrid
       PAYMENT_DB_PASSWORD: shopgrid
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      JAEGER_ENDPOINT: http://jaeger:4318/v1/traces
     depends_on:
       postgres:
         condition: service_healthy
@@ -250,6 +266,7 @@ services:
       INVENTORY_DB_USERNAME: shopgrid
       INVENTORY_DB_PASSWORD: shopgrid
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      JAEGER_ENDPOINT: http://jaeger:4318/v1/traces
     depends_on:
       postgres:
         condition: service_healthy
@@ -272,6 +289,7 @@ services:
       NOTIFICATION_DB_USERNAME: shopgrid
       NOTIFICATION_DB_PASSWORD: shopgrid
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      JAEGER_ENDPOINT: http://jaeger:4318/v1/traces
     depends_on:
       postgres:
         condition: service_healthy
@@ -292,6 +310,7 @@ services:
     environment:
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
       SPRING_ELASTICSEARCH_URIS: http://elasticsearch:9200
+      JAEGER_ENDPOINT: http://jaeger:4318/v1/traces
     depends_on:
       kafka:
         condition: service_healthy
@@ -312,6 +331,7 @@ services:
     environment:
       USER_SERVICE_URL: http://user-service:8082
       AUTH_SERVICE_URL: http://auth-service:8081
+      JAEGER_ENDPOINT: http://jaeger:4318/v1/traces
     depends_on:
       - user-service
       - auth-service
@@ -339,6 +359,7 @@ services:
       NOTIFICATION_SERVICE_URL: http://notification-service:8087
       SEARCH_SERVICE_URL: http://search-service:8089
       ADMIN_SERVICE_URL: http://admin-service:9001
+      JAEGER_ENDPOINT: http://jaeger:4318/v1/traces
     depends_on:
       - auth-service
       - user-service
