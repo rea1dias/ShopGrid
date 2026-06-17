@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: search-service
+  namespace: shopgrid
+spec:
+  selector:
+    app: search-service
+  ports:
+    - port: 8089
+      targetPort: 8089

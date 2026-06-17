@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-gateway
+  namespace: shopgrid
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api-gateway
+  template:
+    metadata:
+      labels:
+        app: api-gateway
+    spec:
+      containers:
+        - name: auth-service
+          image: docker.io/library/docker-compose-api-gateway:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8080
+          env:
+            - name: REDIS_HOST
+              value: redis
+            - name: REDIS_PORT
+              value: "6379"
+            - name: AUTH_SERVICE_URL
+              value: http://auth-service:8081
+            - name: USER_SERVICE_URL
+              value: http://user-service:8082
+            - name: PRODUCT_SERVICE_URL
+              value: http://product-service:8083
+            - name: ORDER_SERVICE_URL
+              value: http://order-service:8084
+            - name: PAYMENT_SERVICE_URL
+              value: http://payment-service:8090
+            - name: INVENTORY_SERVICE_URL
+              value: http://inventory-service:8086
+            - name: NOTIFICATION_SERVICE_URL
+              value: http://notification-service:8087
+            - name: SEARCH_SERVICE_URL
+              value: http://search-service:8089
+            - name: ADMIN_SERVICE_URL
+              value: http://admin-service:9001
+            - name: JAEGER_ENDPOINT
+              value: http://jaeger:4318/v1/traces
+

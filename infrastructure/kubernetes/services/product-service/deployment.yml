@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: product-service
+  namespace: shopgrid
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: product-service
+  template:
+    metadata:
+      labels:
+        app: product-service
+    spec:
+      containers:
+        - name: product-service
+          image: docker.io/library/docker-compose-product-service:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8083
+          env:
+            - name: PRODUCT_DB_URL
+              value: jdbc:postgresql://postgres:5432/shopgrid_product
+            - name: PRODUCT_DB_USERNAME
+              value: shopgrid
+            - name: PRODUCT_DB_PASSWORD
+              value: shopgrid
+            - name: SPRING_KAFKA_BOOTSTRAP_SERVERS
+              value: kafka:29092
+            - name: JAEGER_ENDPOINT
+              value: http://jaeger:4318/v1/traces
+
+

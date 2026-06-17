@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: inventory-service
+  namespace: shopgrid
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: inventory-service
+  template:
+    metadata:
+      labels:
+        app: inventory-service
+    spec:
+      containers:
+        - name: inventory-service
+          image: docker.io/library/docker-compose-inventory-service:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8086
+          env:
+            - name: INVENTORY_DB_URL
+              value: jdbc:postgresql://postgres:5432/shopgrid_inventory
+            - name: INVENTORY_DB_USERNAME
+              value: shopgrid
+            - name: INVENTORY_DB_PASSWORD
+              value: shopgrid
+            - name: SPRING_KAFKA_BOOTSTRAP_SERVERS
+              value: kafka:29092
+            - name: JAEGER_ENDPOINT
+              value: http://jaeger:4318/v1/traces
+
