@@ -6,4 +6,5 @@ public record StockFailedEvent(
         UUID orderId,
         UUID userId,
         String reason
-) {}
+) {
+}

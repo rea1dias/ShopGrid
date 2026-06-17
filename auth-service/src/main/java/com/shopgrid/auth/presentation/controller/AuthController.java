@@ -55,6 +55,7 @@ public class AuthController {
     }
 
     @PostMapping("/block/{id}")
-    public void block(@PathVariable UUID id) {authService.block(id);}
-
+    public void block(@PathVariable UUID id) {
+        authService.block(id);
+    }
 }

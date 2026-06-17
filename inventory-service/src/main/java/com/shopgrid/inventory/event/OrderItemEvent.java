@@ -8,4 +8,5 @@ public record OrderItemEvent(
         String productName,
         BigDecimal price,
         Integer quantity
-) {}
+) {
+}

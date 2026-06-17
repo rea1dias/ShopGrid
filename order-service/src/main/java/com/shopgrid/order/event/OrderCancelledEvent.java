@@ -11,4 +11,5 @@ public record OrderCancelledEvent(
         List<OrderItemEvent> items,
         BigDecimal totalPrice,
         Instant createdAt
-) {}
+) {
+}

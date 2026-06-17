@@ -9,4 +9,5 @@ public record OrderItemResponse(
         String productName,
         BigDecimal price,
         Integer quantity
-) {}
+) {
+}

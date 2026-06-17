@@ -7,5 +7,6 @@ import java.util.UUID;
 public interface AdminService {
 
     void blockUser(UUID id, String token);
+
     UserResponse get(UUID id, String token);
 }

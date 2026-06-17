@@ -61,7 +61,7 @@ public class AuthService {
                 AccountStatus.ACTIVE
         );
         AuthUser saved = userRepository.save(user);
-        userServiceClient.createUser(saved.getId(),saved.getFirstName(), saved.getLastName(), saved.getEmail());
+        userServiceClient.createUser(saved.getId(), saved.getFirstName(), saved.getLastName(), saved.getEmail());
         return createAuthResponse(saved);
     }
 

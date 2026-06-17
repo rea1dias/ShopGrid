@@ -11,4 +11,5 @@ public record ProductFilterRequest(
         BigDecimal minPrice,
         BigDecimal maxPrice,
         ProductStatus status
-) {}
+) {
+}

@@ -6,4 +6,5 @@ public record ErrorResponse(
         String code,
         String message,
         Instant timestamp
-) {}
+) {
+}

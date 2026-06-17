@@ -10,7 +10,4 @@ public interface OrderMapper {
 
     @Mapping(target = "orderId", source = "id")
     OrderResponse toResponse(Order order);
-
-
-
 }

@@ -33,5 +33,7 @@ public class Inventory {
         this.quantity = quantity;
         this.reserved = reserved;
     }
-    protected Inventory() {}
+
+    protected Inventory() {
+    }
 }

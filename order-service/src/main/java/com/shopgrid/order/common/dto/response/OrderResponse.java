@@ -15,4 +15,5 @@ public record OrderResponse(
         Instant createdAt,
         Instant updatedAt,
         List<OrderItemResponse> items
-) {}
+) {
+}

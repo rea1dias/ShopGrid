@@ -40,7 +40,7 @@ public class NotificationServiceImpl implements NotificationService {
         );
         try {
             repository.save(notification);
-             switch (event.channel()) {
+            switch (event.channel()) {
                 case PUSH -> log.info("[PUSH stub] userId={}, orderId={}, message=Ваш заказ #{} подтверждён",
                         event.userId(), event.orderId(), event.orderId());
                 case SMS -> log.info("[SMS stub] recipient={}, orderId={}, message=Ваш заказ #{} подтверждён",

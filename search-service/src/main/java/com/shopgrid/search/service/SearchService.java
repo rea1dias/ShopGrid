@@ -11,6 +11,8 @@ import java.util.List;
 public interface SearchService {
 
     void indexProduct(ProductCreatedEvent event);
+
     Page<ProductDocument> search(String query, Pageable pageable);
+
     Page<ProductDocument> search(String query, BigDecimal minPrice, BigDecimal maxPrice, String category, Pageable pageable);
 }

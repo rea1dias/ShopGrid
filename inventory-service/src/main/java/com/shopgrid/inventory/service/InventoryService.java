@@ -11,8 +11,12 @@ import java.util.UUID;
 public interface InventoryService {
 
     void reserveStock(OrderCreatedEvent event);
+
     void releaseStock(OrderCancelledEvent event);
+
     void createInventory(ProductCreatedEvent event);
+
     InventoryResponse add(UUID productId, InventoryUpdateRequest request);
+
     InventoryResponse get(UUID productId);
 }

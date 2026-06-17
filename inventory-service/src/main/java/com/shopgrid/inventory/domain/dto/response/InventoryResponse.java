@@ -7,4 +7,5 @@ public record InventoryResponse(
         UUID productId,
         Integer quantity,
         Integer reserved
-) {}
+) {
+}

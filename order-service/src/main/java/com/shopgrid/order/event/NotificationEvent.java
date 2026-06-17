@@ -34,4 +34,5 @@ public record NotificationEvent(
 
         @NotNull
         Map<String, Object> context
-) {}
+) {
+}

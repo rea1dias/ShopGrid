@@ -13,4 +13,5 @@ public record UserResponse(
         Role role,
         AccountStatus status,
         String phoneNumber
-) {}
+) {
+}

@@ -4,7 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
-public record UpdateUserRequest (
+public record UpdateUserRequest(
 
         @NotBlank
         @Size(max = 80)
@@ -17,4 +17,5 @@ public record UpdateUserRequest (
         @NotBlank
         @Pattern(regexp = "^\\+?[0-9]{10,15}$")
         String phoneNumber
-) {}
+) {
+}

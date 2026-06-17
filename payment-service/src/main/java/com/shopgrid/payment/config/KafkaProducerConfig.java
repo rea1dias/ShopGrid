@@ -18,7 +18,7 @@ public class KafkaProducerConfig {
     }
 
     @Bean
-    public NewTopic paymentCompletedTopic(){
+    public NewTopic paymentCompletedTopic() {
         return TopicBuilder
                 .name("payment.completed")
                 .partitions(1)
@@ -27,7 +27,7 @@ public class KafkaProducerConfig {
     }
 
     @Bean
-    public NewTopic paymentFailedTopic(){
+    public NewTopic paymentFailedTopic() {
         return TopicBuilder
                 .name("payment.failed")
                 .partitions(1)

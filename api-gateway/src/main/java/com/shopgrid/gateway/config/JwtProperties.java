@@ -8,4 +8,5 @@ import java.time.Duration;
 public record JwtProperties(
         String secret,
         Duration accessTokenTtl
-) {}
+) {
+}

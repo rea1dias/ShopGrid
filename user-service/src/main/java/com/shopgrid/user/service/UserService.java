@@ -12,10 +12,16 @@ import java.util.UUID;
 public interface UserService {
 
     UserResponse create(UserRequest request);
+
     UserResponse get(String email);
+
     UserResponse update(String email, UpdateUserRequest request);
+
     UserResponse getById(UUID id);
+
     Page<UserResponse> getAll(Pageable pageable);
+
     void updateStatus(UUID id, AccountStatus status);
+
     void block(UUID id, String token);
 }

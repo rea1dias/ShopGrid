@@ -4,4 +4,5 @@ import com.shopgrid.order.common.enums.CancelReason;
 
 public record CancelRequest(
         CancelReason cancelReason
-) {}
+) {
+}

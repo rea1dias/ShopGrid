@@ -21,4 +21,5 @@ public record UpdateProductRequest(
         ProductStatus status,
 
         List<UUID> categoryIds
-) {}
+) {
+}

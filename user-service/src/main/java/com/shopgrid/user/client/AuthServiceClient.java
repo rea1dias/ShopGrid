@@ -83,5 +83,6 @@ public class AuthServiceClient {
         throw new ServiceUnavailableException("Auth service is unavailable");
     }
 
-    public record UpdateProfileRequest(String email, String firstName, String lastName) {}
+    public record UpdateProfileRequest(String email, String firstName, String lastName) {
+    }
 }

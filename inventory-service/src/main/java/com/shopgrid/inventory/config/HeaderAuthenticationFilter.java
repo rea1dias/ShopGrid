@@ -25,7 +25,7 @@ public class HeaderAuthenticationFilter extends OncePerRequestFilter {
 
         if (userId != null && email != null && role != null) {
             List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_" + role));
-            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(email , null, authorities);
+            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(email, null, authorities);
             SecurityContextHolder.getContext().setAuthentication(authentication);
         }
         filterChain.doFilter(request, response);

@@ -7,4 +7,5 @@ public record ProductInfo(
         UUID id,
         String name,
         BigDecimal price
-) {}
+) {
+}

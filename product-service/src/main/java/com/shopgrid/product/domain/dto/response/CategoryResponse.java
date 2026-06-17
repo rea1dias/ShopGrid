@@ -6,5 +6,5 @@ public record CategoryResponse(
         UUID id,
         String name,
         String description
-)
-{}
+) {
+}

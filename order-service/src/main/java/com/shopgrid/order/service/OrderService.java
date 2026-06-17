@@ -12,9 +12,13 @@ import java.util.UUID;
 public interface OrderService {
 
     OrderResponse create(OrderRequest request, UUID userId);
+
     void update(UUID id, OrderStatus status);
+
     OrderResponse get(UUID orderId, UUID userId);
+
     Page<OrderResponse> getMyOrders(UUID userId, Pageable pageable);
+
     OrderResponse cancel(UUID orderId, UUID userId, CancelReason reason);
 
 

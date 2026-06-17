@@ -7,4 +7,5 @@ public record StockReservedEvent(
         UUID orderId,
         UUID userId,
         BigDecimal totalPrice
-) {}
+) {
+}

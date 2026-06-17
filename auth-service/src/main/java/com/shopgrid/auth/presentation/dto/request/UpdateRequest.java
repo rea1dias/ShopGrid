@@ -4,4 +4,5 @@ public record UpdateRequest(
         String email,
         String firstName,
         String lastName
-) {}
+) {
+}

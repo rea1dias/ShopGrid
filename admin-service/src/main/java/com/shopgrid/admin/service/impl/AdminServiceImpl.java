@@ -15,9 +15,13 @@ public class AdminServiceImpl implements AdminService {
     private final UserServiceClient userServiceRestClient;
 
     @Override
-    public void blockUser(UUID id, String token) {userServiceRestClient.blockUser(id, token);}
+    public void blockUser(UUID id, String token) {
+        userServiceRestClient.blockUser(id, token);
+    }
 
     @Override
-    public UserResponse get(UUID id, String token) {return userServiceRestClient.getUser(id, token);}
+    public UserResponse get(UUID id, String token) {
+        return userServiceRestClient.getUser(id, token);
+    }
 
 }

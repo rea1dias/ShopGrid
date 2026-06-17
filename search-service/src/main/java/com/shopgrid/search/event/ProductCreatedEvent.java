@@ -12,4 +12,5 @@ public record ProductCreatedEvent(
         String sku,
         String status,
         List<String> categories
-) {}
+) {
+}

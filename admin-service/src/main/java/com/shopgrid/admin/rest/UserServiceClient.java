@@ -42,7 +42,7 @@ public class UserServiceClient {
                 .onError(event -> log.info("All retries failed: {}", event.getLastThrowable().toString()));
     }
 
-    public UserResponse getUser(UUID id, String token){
+    public UserResponse getUser(UUID id, String token) {
         Supplier<UserResponse> cbSupplier = CircuitBreaker.decorateSupplier(breaker,
                 () -> userServiceRestClient.get()
                         .uri("/api/users/internal/{id}", id)

@@ -44,26 +44,26 @@ jobs:
 
       - name: Build and push Docker images
         run: |
-                SERVICES=(
-                  "api-gateway"
-                  "auth-service"
-                  "user-service"
-                  "product-service"
-                  "order-service"
-                  "payment-service"
-                  "inventory-service"
-                  "notification-service"
-                  "search-service"
-                  "admin-service"
-                )
-                for SERVICE in "${SERVICES[@]}"; do
-                  echo "Building $SERVICE..."
-                  docker build \
-                    --build-arg SERVICE_NAME=$SERVICE \
-                    -t ${{ secrets.DOCKER_USERNAME }}/shopgrid-$SERVICE:latest \
-                    -t ${{ secrets.DOCKER_USERNAME }}/shopgrid-$SERVICE:${{ github.sha }} \
-                    .
-                  docker push ${{ secrets.DOCKER_USERNAME }}/shopgrid-$SERVICE:latest
-                  docker push ${{ secrets.DOCKER_USERNAME }}/shopgrid-$SERVICE:${{ github.sha }}
-                done
+          SERVICES=(
+            "api-gateway"
+            "auth-service"
+            "user-service"
+            "product-service"
+            "order-service"
+            "payment-service"
+            "inventory-service"
+            "notification-service"
+            "search-service"
+            "admin-service"
+          )
+          for SERVICE in "${SERVICES[@]}"; do
+            echo "Building $SERVICE..."
+            docker build \
+              --build-arg SERVICE_NAME=$SERVICE \
+              -t ${{ secrets.DOCKER_USERNAME }}/shopgrid-$SERVICE:latest \
+              -t ${{ secrets.DOCKER_USERNAME }}/shopgrid-$SERVICE:${{ github.sha }} \
+              .
+            docker push ${{ secrets.DOCKER_USERNAME }}/shopgrid-$SERVICE:latest
+            docker push ${{ secrets.DOCKER_USERNAME }}/shopgrid-$SERVICE:${{ github.sha }}
+          done
 

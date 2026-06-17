@@ -28,4 +28,5 @@ public record UserRequest(
         AccountStatus status,
 
         String phoneNumber
-) {}
+) {
+}

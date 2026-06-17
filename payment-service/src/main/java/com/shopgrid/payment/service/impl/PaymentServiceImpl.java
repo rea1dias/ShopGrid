@@ -24,7 +24,7 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     public void processPayment(StockReservedEvent event) {
         try {
-            Payment payment = new Payment(event.orderId(),event.userId(),event.totalPrice());
+            Payment payment = new Payment(event.orderId(), event.userId(), event.totalPrice());
             if (paymentRepository.existsByOrderId(event.orderId())) {
                 log.warn("Payment already exists for orderId: {}, skipping", event.orderId());
                 return;
