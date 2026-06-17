@@ -238,8 +238,8 @@ curl -X POST http://localhost:8080/api/orders \
 ### Stage 6: Deployment
 - [x] Dockerfile for all services
 - [x] Docker Compose production setup
-- [ ] Kubernetes manifests
-- [ ] Helm charts
+- [x] Kubernetes manifests
+- [x] Helm charts
 
 ## Current Status
 
