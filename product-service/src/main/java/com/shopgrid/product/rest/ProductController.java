@@ -5,6 +5,7 @@ import com.shopgrid.product.domain.dto.request.ProductRequest;
 import com.shopgrid.product.domain.dto.response.ProductResponse;
 import com.shopgrid.product.domain.dto.response.UpdateProductRequest;
 import com.shopgrid.product.service.ProductService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -25,7 +26,7 @@ public class ProductController {
     @PostMapping("/seller")
     @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<ProductResponse> create(
-            @RequestBody ProductRequest request,
+            @Valid @RequestBody ProductRequest request,
             @RequestHeader("X-User-Id") UUID sellerId
     ) {
         return ResponseEntity.status(HttpStatus.CREATED).body(productService.create(request, sellerId));
@@ -44,7 +45,7 @@ public class ProductController {
     @PutMapping("/seller/{id}")
     public ResponseEntity<ProductResponse> update(
             @PathVariable UUID id,
-            @RequestBody UpdateProductRequest request,
+            @Valid @RequestBody UpdateProductRequest request,
             @RequestHeader("X-User-Id") UUID sellerId
     ) {
         return ResponseEntity.ok(productService.update(request, id, sellerId));

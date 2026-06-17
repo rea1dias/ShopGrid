@@ -5,6 +5,7 @@ import com.shopgrid.user.dto.request.UpdateUserRequest;
 import com.shopgrid.user.dto.request.UserRequest;
 import com.shopgrid.user.dto.response.UserResponse;
 import com.shopgrid.user.service.UserService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,7 +26,7 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping("/create")
-    public ResponseEntity<UserResponse> create(@RequestBody UserRequest request) {
+    public ResponseEntity<UserResponse> create(@Valid @RequestBody UserRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(userService.create(request));
     }
 
@@ -38,7 +39,7 @@ public class UserController {
     @PutMapping("/me")
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<UserResponse> update(@RequestHeader("X-User-Email") String email,
-                                               @RequestBody UpdateUserRequest request) {
+                                               @Valid @RequestBody UpdateUserRequest request) {
         return ResponseEntity.ok(userService.update(email, request));
     }
 
@@ -57,7 +58,7 @@ public class UserController {
     @PutMapping("/{id}/status")
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<Void> updateStatus(@PathVariable UUID id,
-                                              @RequestParam AccountStatus status) {
+                                             @RequestParam AccountStatus status) {
         userService.updateStatus(id, status);
         return ResponseEntity.noContent().build();
     }
