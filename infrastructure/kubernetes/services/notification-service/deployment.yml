@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notification-service
+  namespace: shopgrid
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: notification-service
+  template:
+    metadata:
+      labels:
+        app: notification-service
+    spec:
+      containers:
+        - name: inventory-service
+          image: docker.io/library/docker-compose-notification-service:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8087
+          env:
+            - name: NOTIFICATION_DB_URL
+              value: jdbc:postgresql://postgres:5432/shopgrid_notification
+            - name: NOTIFICATION_DB_USERNAME
+              value: shopgrid
+            - name: NOTIFICATION_DB_PASSWORD
+              value: shopgrid
+            - name: SPRING_KAFKA_BOOTSTRAP_SERVERS
+              value: kafka:29092
+            - name: JAEGER_ENDPOINT
+              value: http://jaeger:4318/v1/traces

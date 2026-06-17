@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: order-service
+  namespace: shopgrid
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: order-service
+  template:
+    metadata:
+      labels:
+        app: order-service
+    spec:
+      containers:
+        - name: order-service
+          image: docker.io/library/docker-compose-order-service:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8084
+          env:
+            - name: ORDER_DB_URL
+              value: jdbc:postgresql://postgres:5432/shopgrid_order
+            - name: ORDER_DB_USERNAME
+              value: shopgrid
+            - name: ORDER_DB_PASSWORD
+              value: shopgrid
+            - name: SPRING_KAFKA_BOOTSTRAP_SERVERS
+              value: kafka:29092
+            - name: PRODUCT_SERVICE_URL
+              value: http://product-service:8083
+            - name: USER_SERVICE_URL
+              value: http://user-service:8082
+            - name: JAEGER_ENDPOINT
+              value: http://jaeger:4318/v1/traces
+

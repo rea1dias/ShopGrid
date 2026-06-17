@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-service
+  namespace: shopgrid
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: user-service
+  template:
+    metadata:
+      labels:
+        app: user-service
+    spec:
+      containers:
+        - name: user-service
+          image: docker.io/library/docker-compose-user-service:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8082
+          env:
+            - name: USER_DB_URL
+              value: jdbc:postgresql://postgres:5432/shopgrid_user
+            - name: USER_DB_USERNAME
+              value: shopgrid
+            - name: USER_DB_PASSWORD
+              value: shopgrid
+            - name: AUTH_SERVICE_URL
+              value: http://auth-service:8081
+            - name: JAEGER_ENDPOINT
+              value: http://jaeger:4318/v1/traces

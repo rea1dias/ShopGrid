@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-service
+  namespace: shopgrid
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: auth-service
+  template:
+    metadata:
+      labels:
+        app: auth-service
+    spec:
+      containers:
+        - name: auth-service
+          image: docker.io/library/docker-compose-auth-service:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8081
+          env:
+            - name: AUTH_DB_URL
+              value: jdbc:postgresql://postgres:5432/shopgrid_auth
+            - name: AUTH_DB_USERNAME
+              value: shopgrid
+            - name: AUTH_DB_PASSWORD
+              value: shopgrid
+            - name: SPRING_KAFKA_BOOTSTRAP_SERVERS
+              value: kafka:29092
+            - name: USER_SERVICE_URL
+              value: http://user-service:8082
+            - name: JAEGER_ENDPOINT
+              value: http://jaeger:4318/v1/traces
+

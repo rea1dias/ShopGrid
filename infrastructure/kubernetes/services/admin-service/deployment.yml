@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: admin-service
+  namespace: shopgrid
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: admin-service
+  template:
+    metadata:
+      labels:
+        app: admin-service
+    spec:
+      containers:
+        - name: auth-service
+          image: docker.io/library/docker-compose-admin-service:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 9001
+          env:
+            - name: USER_SERVICE_URL
+              value: http://user-service:8082
+            - name: AUTH_SERVICE_URL
+              value: http://auth-service:8081
+            - name: JAEGER_ENDPOINT
+              value: http://jaeger:4318/v1/traces
+

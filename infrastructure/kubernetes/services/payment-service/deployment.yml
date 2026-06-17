@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payment-service
+  namespace: shopgrid
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: payment-service
+  template:
+    metadata:
+      labels:
+        app: payment-service
+    spec:
+      containers:
+        - name: order-service
+          image: docker.io/library/docker-compose-payment-service:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8090
+          env:
+            - name: PAYMENT_DB_URL
+              value: jdbc:postgresql://postgres:5432/shopgrid_payment
+            - name: PAYMENT_DB_USERNAME
+              value: shopgrid
+            - name: PAYMENT_DB_PASSWORD
+              value: shopgrid
+            - name: SPRING_KAFKA_BOOTSTRAP_SERVERS
+              value: kafka:29092
+            - name: JAEGER_ENDPOINT
+              value: http://jaeger:4318/v1/traces
+
