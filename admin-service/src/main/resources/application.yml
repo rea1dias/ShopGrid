@@ -25,3 +25,19 @@ management:
   otlp:
     tracing:
       endpoint: ${JAEGER_ENDPOINT:http://localhost:4318/v1/traces}
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      userService:
+        sliding-window-size: 10
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+  retry:
+    instances:
+      userService:
+        max-attempts: 3
+        wait-duration: 500ms
+        retry-exceptions:
+          - org.springframework.web.client.ResourceAccessException
+          - org.springframework.web.client.HttpServerErrorException
