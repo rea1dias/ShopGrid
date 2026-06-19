@@ -338,6 +338,25 @@ services:
     networks:
       - shopgrid-network
 
+  cart-service:
+    build:
+      context: ../..
+      dockerfile: Dockerfile
+      args:
+        SERVICE_NAME: cart-service
+    container_name: shopgrid-cart-service
+    ports:
+      - "8095:8095"
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      PRODUCT_SERVICE_URL: http://localhost:8083
+    depends_on:
+      - redis
+      - product-service
+    networks:
+      - shopgrid-network
+
   api-gateway:
     build:
       context: ../..
@@ -359,6 +378,7 @@ services:
       NOTIFICATION_SERVICE_URL: http://notification-service:8087
       SEARCH_SERVICE_URL: http://search-service:8089
       ADMIN_SERVICE_URL: http://admin-service:9001
+      CART_SERVICE_URL: http://cart-service:8095
       JAEGER_ENDPOINT: http://jaeger:4318/v1/traces
     depends_on:
       - auth-service
@@ -369,6 +389,7 @@ services:
       - inventory-service
       - search-service
       - admin-service
+      - cart-service
     networks:
       - shopgrid-network
 

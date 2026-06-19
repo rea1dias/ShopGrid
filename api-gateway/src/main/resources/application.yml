@@ -57,6 +57,11 @@ spring:
           uri: ${ADMIN_SERVICE_URL:http://localhost:9001}
           predicates:
             - Path=/api/admin/**
+
+        - id: cart-service
+          uri: ${CART_SERVICE_URL:http://localhost:8095}
+          predicates:
+            - Path=/api/cart/**
       default-filters:
         - name: RequestRateLimiter
           args:
