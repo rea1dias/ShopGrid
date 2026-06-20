@@ -1,17 +1,21 @@
 package com.shopgrid.product.service.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.shopgrid.product.common.ProductStatus;
 import com.shopgrid.product.domain.dto.request.ProductRequest;
 import com.shopgrid.product.domain.dto.response.ProductResponse;
 import com.shopgrid.product.domain.dto.response.UpdateProductRequest;
 import com.shopgrid.product.domain.entity.Category;
 import com.shopgrid.product.domain.entity.Product;
+import com.shopgrid.product.event.OutboxEvent;
 import com.shopgrid.product.event.ProductCreatedEvent;
 import com.shopgrid.product.exception.NotFoundException;
 import com.shopgrid.product.filter.ProductSpecification;
 import com.shopgrid.product.kafka.ProductEventPublisher;
 import com.shopgrid.product.mapper.ProductMapper;
 import com.shopgrid.product.repo.CategoryRepository;
+import com.shopgrid.product.repo.OutboxEventRepository;
 import com.shopgrid.product.repo.ProductRepository;
 import com.shopgrid.product.service.ProductService;
 import lombok.RequiredArgsConstructor;
@@ -37,6 +41,8 @@ public class ProductServiceImpl implements ProductService {
     private final ProductMapper productMapper;
     private final CategoryRepository categoryRepository;
     private final ProductEventPublisher publisher;
+    private final ObjectMapper objectMapper;
+    private final OutboxEventRepository outboxEventRepository;
 
     @Override
     @PreAuthorize("hasRole('SELLER') or hasRole('ADMIN')")
@@ -52,7 +58,13 @@ public class ProductServiceImpl implements ProductService {
         log.info("Product: {}", product);
         Product saved = productRepository.save(product);
         ProductCreatedEvent event = new ProductCreatedEvent(saved.getId(), saved.getName(), saved.getDescription(), saved.getPrice(), saved.getSku(), saved.getStatus().name(), saved.getCategories().stream().map(Category::getName).toList());
-        publisher.publishProductCreated(event);
+        try {
+            String payload = objectMapper.writeValueAsString(event);
+            outboxEventRepository.save(new OutboxEvent("product.created", payload));
+            log.info("Product created event: {}", event.productId());
+        } catch (JsonProcessingException e) {
+            throw new IllegalStateException("Failed to serialize ProductCreatedEvent", e);
+        }
         return productMapper.toResponse(saved);
     }
 
