@@ -1,5 +1,6 @@
 package com.shopgrid.inventory.service.impl;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.shopgrid.inventory.domain.dto.request.InventoryUpdateRequest;
 import com.shopgrid.inventory.domain.dto.response.InventoryResponse;
 import com.shopgrid.inventory.domain.entity.Inventory;
@@ -9,6 +10,7 @@ import com.shopgrid.inventory.exception.NotFoundException;
 import com.shopgrid.inventory.kafka.InventoryEventPublisher;
 import com.shopgrid.inventory.mapper.InventoryMapper;
 import com.shopgrid.inventory.repo.InventoryRepository;
+import com.shopgrid.inventory.repo.OutboxEventRepository;
 import com.shopgrid.inventory.service.InventoryService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,6 +28,8 @@ public class InventoryServiceImpl implements InventoryService {
     private final InventoryRepository inventoryRepository;
     private final InventoryEventPublisher publisher;
     private final InventoryMapper mapper;
+    private final ObjectMapper objectMapper;
+    private final OutboxEventRepository outboxEventRepository;
 
     @Override
     @Transactional
@@ -40,12 +44,21 @@ public class InventoryServiceImpl implements InventoryService {
                 inventory.setQuantity(inventory.getQuantity() - item.quantity());
                 inventory.setReserved(inventory.getReserved() + item.quantity());
                 inventoryRepository.save(inventory);
-                log.info("Reserved stock: {}", inventory.getReserved());
             }
-            publisher.publishStockReserved(new StockReservedEvent(event.orderId(), event.userId(), event.totalPrice()));
+            try {
+                String payload = objectMapper.writeValueAsString(event);
+                outboxEventRepository.save(new OutboxEvent("stock.reserved", payload));
+                log.info("Reserved stock: {}", event.orderId());
+            } catch (Exception e) {
+                log.error("Failed to reserve stock.reserved for orderId: {}, error: {}", event.orderId(), e.getMessage());
+            }
         } catch (Exception e) {
-            log.error("Failed to reserve stock for orderId: {}, error: {}", event.orderId(), e.getMessage());
-            publisher.publishStockFailed(new StockFailedEvent(event.orderId(), event.userId(), e.getMessage()));
+            try {
+                String payload = objectMapper.writeValueAsString(event);
+                outboxEventRepository.save(new OutboxEvent("stock.failed", payload));
+            } catch (Exception ex) {
+                log.error("Failed to persist stock.failed event for orderId: {}", event.orderId(), ex);
+            }
         }
     }
 

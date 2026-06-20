@@ -1,5 +1,7 @@
 package com.shopgrid.order.service.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.shopgrid.order.client.ProductServiceClient;
 import com.shopgrid.order.client.UserServiceClient;
 import com.shopgrid.order.common.dto.request.OrderRequest;
@@ -16,6 +18,7 @@ import com.shopgrid.order.common.exception.NotFoundException;
 import com.shopgrid.order.common.exception.OrderAlreadyException;
 import com.shopgrid.order.domain.Order;
 import com.shopgrid.order.domain.OrderItem;
+import com.shopgrid.order.domain.OutboxEvent;
 import com.shopgrid.order.event.NotificationEvent;
 import com.shopgrid.order.event.OrderCancelledEvent;
 import com.shopgrid.order.event.OrderCreatedEvent;
@@ -23,6 +26,7 @@ import com.shopgrid.order.event.OrderItemEvent;
 import com.shopgrid.order.kafka.OrderEventPublisher;
 import com.shopgrid.order.mapper.OrderMapper;
 import com.shopgrid.order.repo.OrderRepository;
+import com.shopgrid.order.repo.OutboxEventRepository;
 import com.shopgrid.order.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -49,11 +53,12 @@ public class OrderServiceImpl implements OrderService {
     private final OrderEventPublisher publisher;
     private final OrderMapper mapper;
     private final UserServiceClient userServiceClient;
+    private final ObjectMapper objectMapper;
+    private final OutboxEventRepository outboxEventRepository;
 
     @Override
     @Transactional
     public OrderResponse create(OrderRequest request, UUID userId) {
-
         List<OrderItem> items = request.items().stream().map(itemRequest -> {
             ProductInfo product = productServiceClient.getProductInfo(itemRequest.productId());
             return OrderItem.builder().productId(itemRequest.productId()).productName(product.name()).price(product.price()).quantity(itemRequest.quantity()).build();
@@ -64,8 +69,12 @@ public class OrderServiceImpl implements OrderService {
         Order saved = orderRepository.save(order);
         log.info("Order status:{}", saved.getStatus());
         OrderCreatedEvent event = new OrderCreatedEvent(saved.getId(), saved.getUserId(), items.stream().map(item -> new OrderItemEvent(item.getProductId(), item.getProductName(), item.getPrice(), item.getQuantity())).toList(), totalPrice, saved.getCreatedAt());
-        log.info("Publishing event {}", event.orderId());
-        publisher.publishOrderCreated(event);
+        try {
+            String payload = objectMapper.writeValueAsString(event);
+            outboxEventRepository.save(new OutboxEvent("order.created", payload));
+        } catch (JsonProcessingException e) {
+            throw new IllegalStateException("Failed to serialize OrderCreatedEvent", e);
+        }
         List<OrderItemResponse> responses = items.stream().map(item -> new OrderItemResponse(item.getProductId(), item.getProductName(), item.getPrice(), item.getQuantity())).toList();
         return new OrderResponse(saved.getId(), saved.getUserId(), saved.getStatus(), saved.getTotalPrice(), saved.getCreatedAt(), saved.getUpdatedAt(), responses);
     }
@@ -124,8 +133,12 @@ public class OrderServiceImpl implements OrderService {
         orderRepository.save(order);
         log.info("Saved order: {}", order.getId());
         OrderCancelledEvent event = new OrderCancelledEvent(orderId, userId, order.getItems().stream().map(item -> new OrderItemEvent(item.getProductId(), item.getProductName(), item.getPrice(), item.getQuantity())).toList(), order.getTotalPrice(), order.getCreatedAt());
-        publisher.publishCancelOrder(event);
-
+        try {
+            String payload = objectMapper.writeValueAsString(event);
+            outboxEventRepository.save(new OutboxEvent("order.cancelled", payload));
+        } catch (JsonProcessingException e) {
+            throw new IllegalStateException("Failed to serialize OrderCancelledEvent", e);
+        }
         try {
             UserResponse user = userServiceClient.getUser(order.getUserId());
             NotificationEvent notificationEvent = new NotificationEvent("order-cancelled-" + orderId, order.getUserId(), orderId, ChannelType.PUSH, NotificationTemplateType.ORDER_CANCELLED, user.email(), order.getTotalPrice(), Map.of("user", user.firstName(), "reason", reason.name()));
