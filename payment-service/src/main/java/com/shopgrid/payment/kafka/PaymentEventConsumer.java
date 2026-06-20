@@ -1,5 +1,7 @@
 package com.shopgrid.payment.kafka;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.shopgrid.payment.event.StockReservedEvent;
 import com.shopgrid.payment.service.PaymentService;
 import lombok.RequiredArgsConstructor;
@@ -13,12 +15,17 @@ import org.springframework.stereotype.Component;
 public class PaymentEventConsumer {
 
     private final PaymentService service;
+    private final ObjectMapper objectMapper;
 
-    @KafkaListener(topics = "stock.reserved", groupId = "payment-service",
-            properties = "spring.json.value.default.type=com.shopgrid.payment.event.StockReservedEvent")
-    public void handleStockReserved(StockReservedEvent event) {
-        log.info("Received order created event: {}", event.orderId());
-        service.processPayment(event);
+    @KafkaListener(topics = "stock.reserved", groupId = "payment-service")
+    public void handleStockReserved(String message) {
+        try {
+            StockReservedEvent event = objectMapper.readValue(message, StockReservedEvent.class);
+            log.info("Received order created event: {}", event.orderId());
+            service.processPayment(event);
+        } catch (JsonProcessingException e) {
+            log.error("Failed to deserialize OrderCreatedEvent: {}", e.getMessage());
+        }
     }
 
 }
