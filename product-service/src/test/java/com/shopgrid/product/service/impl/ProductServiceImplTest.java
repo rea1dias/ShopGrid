@@ -1,5 +1,6 @@
 package com.shopgrid.product.service.impl;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.shopgrid.product.common.ProductStatus;
 import com.shopgrid.product.domain.dto.request.ProductRequest;
 import com.shopgrid.product.domain.dto.response.CategoryResponse;
@@ -11,6 +12,7 @@ import com.shopgrid.product.exception.NotFoundException;
 import com.shopgrid.product.kafka.ProductEventPublisher;
 import com.shopgrid.product.mapper.ProductMapper;
 import com.shopgrid.product.repo.CategoryRepository;
+import com.shopgrid.product.repo.OutboxEventRepository;
 import com.shopgrid.product.repo.ProductRepository;
 import com.shopgrid.product.service.ProductService;
 import org.junit.jupiter.api.Test;
@@ -40,31 +42,32 @@ public class ProductServiceImplTest {
     private CategoryRepository categoryRepository;
 
     @Mock
-    private ProductEventPublisher publisher;
+    private OutboxEventRepository outboxEventRepository;
 
     @Mock
     private ProductMapper productMapper;
+
+    @Mock
+    private ObjectMapper objectMapper;
 
     @InjectMocks
     private ProductServiceImpl productService;
 
     @Test
-    public void createProductSuccessfully() {
-
+    public void createProductSuccessfully() throws Exception {
         UUID sellerId = UUID.randomUUID();
         UUID categoryId = UUID.randomUUID();
         ProductRequest request = new ProductRequest(
-                "name",
-                "description",
-                BigDecimal.valueOf(15000),
-                "skuuuu",
-                List.of(categoryId)
+                "name", "description", BigDecimal.valueOf(15000), "skuuuu", List.of(categoryId)
         );
+
         Category category = new Category();
         category.setId(UUID.randomUUID());
         category.setName("Name");
         category.setDescription("Description");
+
         when(categoryRepository.findAllById(request.categoryIds())).thenReturn(List.of(category));
+
         Product product = new Product();
         product.setId(UUID.randomUUID());
         product.setName("Name");
@@ -74,7 +77,9 @@ public class ProductServiceImplTest {
         product.setSellerId(sellerId);
         product.setCreatedAt(Instant.now());
         product.setCategories(List.of(category));
+
         when(productMapper.toEntity(request)).thenReturn(product);
+
         Product saved = new Product();
         saved.setId(UUID.randomUUID());
         saved.setName("Name");
@@ -83,32 +88,32 @@ public class ProductServiceImplTest {
         saved.setStatus(ProductStatus.ACTIVE);
         saved.setSku("hello");
         saved.setCategories(List.of(category));
+
         when(productRepository.save(any(Product.class))).thenReturn(saved);
+        when(objectMapper.writeValueAsString(any())).thenReturn("{\"productId\":\"123\"}");
+
         productService.create(request, sellerId);
-        verify(publisher).publishProductCreated(any());
+
+        // проверяем что событие сохранено в outbox
+        verify(outboxEventRepository).save(argThat(event ->
+                event.getEventType().equals("product.created")
+        ));
     }
 
     @Test
     public void createProductFailed() {
-
         UUID sellerId = UUID.randomUUID();
         UUID categoryId = UUID.randomUUID();
         ProductRequest request = new ProductRequest(
-                "name",
-                "description",
-                BigDecimal.valueOf(15000),
-                "skuuuu",
-                List.of(categoryId)
+                "name", "description", BigDecimal.valueOf(15000), "skuuuu", List.of(categoryId)
         );
 
         when(categoryRepository.findAllById(List.of(categoryId))).thenReturn(Collections.emptyList());
-        assertThrows(
-                NotFoundException.class,
-                () -> productService.create(request, sellerId)
-        );
+
+        assertThrows(NotFoundException.class, () -> productService.create(request, sellerId));
 
         verify(productRepository, never()).save(any());
-        verify(publisher, never()).publishProductCreated(any());
+        verify(outboxEventRepository, never()).save(any());  // ← обновить
     }
 
 
