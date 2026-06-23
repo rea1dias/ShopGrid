@@ -43,6 +43,7 @@ public class OutboxPoller {
         return switch (eventType) {
             case "order.created" -> "order.created";
             case "order.cancelled" -> "order.cancelled";
+            case "order.confirmed.notification" -> "notification.requests.v1";
             default -> throw new IllegalArgumentException("Unknown event type: " + eventType);
         };
     }

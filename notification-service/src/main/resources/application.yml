@@ -29,6 +29,10 @@ spring:
     properties:
       hibernate:
         format_sql: true
+
+resend:
+  api-key: ${RESEND_API_KEY:re_a6Kwuhxu_Lmvz5z2HDQvoWUpoFvvt21LE}
+
 server:
   port: 8087
 
