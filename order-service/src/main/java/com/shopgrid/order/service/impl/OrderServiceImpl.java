@@ -93,8 +93,16 @@ public class OrderServiceImpl implements OrderService {
                 context.put("user", user.firstName());
                 context.put("email", user.email());
 
-                NotificationEvent event = new NotificationEvent("order-confirmed-" + orderId, order.getUserId(), orderId, ChannelType.PUSH, NotificationTemplateType.ORDER_CONFIRMED, user.email(), order.getTotalPrice(), context);
-                publisher.publishSendNotification(event);
+                NotificationEvent event = new NotificationEvent("order-confirmed-" + orderId,
+                        order.getUserId(),
+                        orderId,
+                        ChannelType.EMAIL,
+                        NotificationTemplateType.ORDER_CONFIRMED,
+                        user.email(),
+                        order.getTotalPrice(),
+                        context);
+                String payload = objectMapper.writeValueAsString(event);
+                outboxEventRepository.save(new OutboxEvent("order.confirmed.notification", payload));
             }
         } catch (Exception e) {
             log.warn("Could not fetch user {} for notification, skipping. Reason: {}", order.getUserId(), e.getMessage());

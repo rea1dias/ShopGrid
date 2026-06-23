@@ -18,7 +18,8 @@ public class OutboxPoller {
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final OutboxEventRepository outboxEventRepository;
 
-    public OutboxPoller(OutboxEventRepository outboxEventRepository, @Qualifier("stringKafkaTemplate") KafkaTemplate<String, String> kafkaTemplate) {
+    public OutboxPoller(OutboxEventRepository outboxEventRepository,
+                        @Qualifier("stringKafkaTemplate") KafkaTemplate<String, String> kafkaTemplate) {
         this.outboxEventRepository = outboxEventRepository;
         this.kafkaTemplate = kafkaTemplate;
     }

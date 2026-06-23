@@ -42,7 +42,7 @@ public class Notification {
     @Column(name = "status", nullable = false)
     private NotificationStatus status;
 
-    @Column(name = "error_message")
+    @Column(columnDefinition = "TEXT")
     private String errorMessage;
 
     @Column(name = "created_at", nullable = false)
