@@ -93,14 +93,7 @@ public class OrderServiceImpl implements OrderService {
                 context.put("user", user.firstName());
                 context.put("email", user.email());
 
-                NotificationEvent event = new NotificationEvent("order-confirmed-" + orderId,
-                        order.getUserId(),
-                        orderId,
-                        ChannelType.EMAIL,
-                        NotificationTemplateType.ORDER_CONFIRMED,
-                        user.email(),
-                        order.getTotalPrice(),
-                        context);
+                NotificationEvent event = new NotificationEvent("order-confirmed-" + orderId, order.getUserId(), orderId, ChannelType.EMAIL, NotificationTemplateType.ORDER_CONFIRMED, user.email(), order.getTotalPrice(), context);
                 String payload = objectMapper.writeValueAsString(event);
                 outboxEventRepository.save(new OutboxEvent("order.confirmed.notification", payload));
             }
@@ -149,8 +142,9 @@ public class OrderServiceImpl implements OrderService {
         }
         try {
             UserResponse user = userServiceClient.getUser(order.getUserId());
-            NotificationEvent notificationEvent = new NotificationEvent("order-cancelled-" + orderId, order.getUserId(), orderId, ChannelType.PUSH, NotificationTemplateType.ORDER_CANCELLED, user.email(), order.getTotalPrice(), Map.of("user", user.firstName(), "reason", reason.name()));
-            publisher.publishSendNotification(notificationEvent);
+            NotificationEvent notificationEvent = new NotificationEvent("order-cancelled-" + orderId, order.getUserId(), orderId, ChannelType.EMAIL, NotificationTemplateType.ORDER_CANCELLED, user.email(), order.getTotalPrice(), Map.of("user", user.firstName(), "reason", reason.name()));
+            String payload = objectMapper.writeValueAsString(notificationEvent);
+            outboxEventRepository.save(new OutboxEvent("order.cancelled.notification", payload));
         } catch (Exception e) {
             log.warn("Could not send notification for orderId: {}", orderId);
         }
