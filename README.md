@@ -1,16 +1,10 @@
 # ShopGrid
 
-**ShopGrid** is a pet project for learning and practicing microservice architecture with Java and Spring Boot.
+**ShopGrid** is a backend pet project built to practice real-world microservice architecture with Java and Spring Boot.
 
-The goal of this project is not to build a real production marketplace, but to create a realistic backend system that
-demonstrates modern backend patterns: service decomposition, API Gateway, authentication, event-driven communication,
-distributed tracing, metrics, Docker, and fault tolerance.
+The goal is not to build a production marketplace, but to implement the patterns and infrastructure that real backend engineers work with every day: service decomposition, event-driven communication, fault tolerance, observability, email notifications, and API documentation.
 
-## Project Idea
-
-ShopGrid is an e-commerce platform split into several independent services.
-
-Each service has its own responsibility and can be developed, tested, and deployed separately.
+---
 
 ## Architecture
 
@@ -24,6 +18,7 @@ flowchart TD
     Gateway --> Order[Order Service :8084]
     Gateway --> Payment[Payment Service :8090]
     Gateway --> Admin[Admin Service :9001]
+    Gateway --> Cart[Cart Service :8095]
 
     Order --> Kafka[Apache Kafka]
     Payment --> Kafka
@@ -44,82 +39,98 @@ flowchart TD
     Notification --> PostgreSQL
 
     Gateway --> Redis[(Redis)]
+    Cart --> Redis
 
     Auth -.->|REST| User
     User -.->|REST| Auth
     Order -.->|REST| Product
     Order -.->|REST| User
+
+    Notification -->|Email| Resend[Resend API]
 ```
+
+---
 
 ## Technology Stack
 
 ### Backend
-
 - Java 17
 - Spring Boot 3.x
-- Spring Web
-- Spring Security
-- Spring Data JPA
+- Spring Web / Spring Security / Spring Data JPA
 - Spring Cloud Gateway
-- Resilience4j (CircuitBreaker, Retry, TimeLimiter)
+- Resilience4j — CircuitBreaker, Retry, TimeLimiter
 
-### Databases and Storage
-
-- PostgreSQL (separate DB per service)
-- Redis (rate limiting)
-- Elasticsearch (product search)
+### Databases & Storage
+- PostgreSQL — separate database per service
+- Redis — rate limiting, cart storage
+- Elasticsearch — full-text product search
 
 ### Messaging
+- Apache Kafka — event-driven communication between services
+- Outbox Pattern — guaranteed event delivery
 
-- Apache Kafka
+### Notifications
+- Resend — transactional email delivery
+- HTML email templates for order confirmation and cancellation
+
+### API Documentation
+- SpringDoc OpenAPI — aggregated Swagger UI via API Gateway
 
 ### Observability
-
-- Prometheus (metrics collection)
-- Grafana (metrics visualization)
-- Jaeger (distributed tracing)
+- Prometheus — metrics collection
+- Grafana — metrics visualization
+- Jaeger — distributed tracing (OpenTelemetry)
 
 ### Infrastructure
+- Docker / Docker Compose
+- Kubernetes manifests
+- Helm charts
+- GitHub Actions CI/CD
 
-- Docker
-- Docker Compose
+---
 
 ## Services
 
-| Service              | Port | Description                                    |
-|----------------------|------|------------------------------------------------|
-| API Gateway          | 8080 | Routes requests, JWT validation, rate limiting |
-| Auth Service         | 8081 | Registration, login, JWT tokens                |
-| User Service         | 8082 | User profiles                                  |
-| Product Service      | 8083 | Product catalog, categories                    |
-| Order Service        | 8084 | Order creation and lifecycle                   |
-| Payment Service      | 8090 | Payment simulation with idempotency            |
-| Inventory Service    | 8086 | Stock management                               |
-| Notification Service | 8087 | Email-like notifications via Kafka             |
-| Search Service       | 8089 | Full-text product search via Elasticsearch     |
-| Admin Service        | 9001 | Admin operations                               |
+| Service              | Port | Description                                        |
+|----------------------|------|----------------------------------------------------|
+| API Gateway          | 8080 | Routing, JWT validation, rate limiting, Swagger UI |
+| Auth Service         | 8081 | Registration, login, JWT access/refresh tokens     |
+| User Service         | 8082 | User profiles                                      |
+| Product Service      | 8083 | Product catalog, categories                        |
+| Order Service        | 8084 | Order lifecycle, Outbox Pattern                    |
+| Payment Service      | 8090 | Payment simulation with idempotency                |
+| Inventory Service    | 8086 | Stock reservation and management                   |
+| Notification Service | 8087 | Email notifications via Resend                     |
+| Search Service       | 8089 | Full-text product search via Elasticsearch         |
+| Cart Service         | 8095 | Shopping cart backed by Redis                      |
+| Admin Service        | 9001 | Admin operations                                   |
+
+---
 
 ## Infrastructure Ports
 
-| Service       | URL                    |
-|---------------|------------------------|
-| API Gateway   | http://localhost:8080  |
-| Kafka UI      | http://localhost:1212  |
-| Elasticsearch | http://localhost:9200  |
-| Kibana        | http://localhost:5601  |
-| Prometheus    | http://localhost:9090  |
-| Grafana       | http://localhost:3000  |
-| Jaeger UI     | http://localhost:16686 |
-| PostgreSQL    | localhost:5432         |
-| Redis         | localhost:6379         |
-| Kafka         | localhost:9092         |
+| Service       | URL                           |
+|---------------|-------------------------------|
+| API Gateway   | http://localhost:8080         |
+| Swagger UI    | http://localhost:8080/swagger-ui.html |
+| Kafka UI      | http://localhost:1212         |
+| Elasticsearch | http://localhost:9200         |
+| Kibana        | http://localhost:5601         |
+| Prometheus    | http://localhost:9090         |
+| Grafana       | http://localhost:3000         |
+| Jaeger UI     | http://localhost:16686        |
+| PostgreSQL    | localhost:5432                |
+| Redis         | localhost:6379                |
+| Kafka         | localhost:9092                |
+
+---
 
 ## Getting Started
 
 ### Prerequisites
 
-- [Docker](https://www.docker.com/get-started) (version 20+)
-- [Docker Compose](https://docs.docker.com/compose/install/) (version 2+)
+- [Docker](https://www.docker.com/get-started) 20+
+- [Docker Compose](https://docs.docker.com/compose/install/) 2+
 - [Java 17](https://adoptium.net/)
 
 ### 1. Clone the repository
@@ -141,7 +152,7 @@ cd ShopGrid
 docker-compose -f infrastructure/docker-compose/docker-compose.yml up --build -d
 ```
 
-Wait about 60 seconds for all services to start.
+Wait ~60 seconds for all services to initialize.
 
 ### 4. Verify
 
@@ -157,11 +168,25 @@ All containers should be `Up`.
 docker-compose -f infrastructure/docker-compose/docker-compose.yml down
 ```
 
-To also remove saved data:
+Remove volumes too:
 
 ```bash
 docker-compose -f infrastructure/docker-compose/docker-compose.yml down -v
 ```
+
+---
+
+## API Documentation
+
+Aggregated Swagger UI is available at:
+
+```
+http://localhost:8080/swagger-ui.html
+```
+
+Use the dropdown in the top-right corner to switch between services.
+
+---
 
 ## Quick API Test
 
@@ -181,7 +206,7 @@ curl -X POST http://localhost:8080/api/auth/login \
   -d '{"email": "test@example.com", "password": "password123"}'
 ```
 
-### Create Product (use token from login)
+### Create Product
 
 ```bash
 curl -X POST http://localhost:8080/api/products \
@@ -199,71 +224,86 @@ curl -X POST http://localhost:8080/api/orders \
   -d '{"items": [{"productId": "<product-id>", "quantity": 1}]}'
 ```
 
+---
+
+## Key Design Decisions
+
+**Why Kafka instead of REST between services?**
+Order, payment, and inventory services communicate via Kafka events to avoid tight coupling and blocking calls. If inventory is temporarily down, the order still gets placed.
+
+**Why Outbox Pattern?**
+Saving an event to an outbox table in the same transaction as the business data guarantees no event is lost even if Kafka is unavailable. A poller reads the outbox and delivers to Kafka.
+
+**Why Resend for emails?**
+Modern developer-first email API with reliable delivery and a clean REST interface. Better than SMTP configuration for a cloud-native project.
+
+**Why CircuitBreaker on inter-service calls?**
+Order service calls Product and User services via REST. If they're slow or down, the circuit breaker prevents cascading failures.
+
+---
+
 ## Observability
 
-### Grafana Dashboards
+### Grafana
 
-1. Open http://localhost:3000 (admin/admin)
-2. Go to Dashboards → Import
-3. Enter ID: `19004` → Load
-4. Select Prometheus datasource → Import
+1. Open http://localhost:3000 (admin / admin)
+2. Dashboards → Import → ID `19004` → Load
+3. Select Prometheus datasource → Import
 
-### Jaeger Tracing
+### Jaeger
 
 1. Open http://localhost:16686
-2. Select a service from dropdown
+2. Select a service from the dropdown
 3. Click **Find Traces**
+
+---
 
 ## Development Plan
 
-### Stage 1: Foundation
-
+### Stage 1 — Foundation
 - [x] API Gateway with JWT validation and rate limiting
 - [x] Auth Service with JWT access/refresh tokens
 - [x] Docker Compose for infrastructure
 
-### Stage 2: Core E-commerce
-
-- [x] User, Product, Order, Inventory, Payment services
+### Stage 2 — Core E-commerce
+- [x] User, Product, Order, Inventory, Payment, Cart services
 - [x] Separate PostgreSQL database per service
 - [x] REST APIs
 
-### Stage 3: Events
-
+### Stage 3 — Events
 - [x] Kafka event bus
 - [x] order.created, payment.completed, stock.reserved events
-- [x] Notification Service
+- [x] Outbox Pattern for guaranteed delivery
+- [x] Notification Service with Resend email integration
 - [x] Search Service with Elasticsearch indexing
 
-### Stage 4: Reliability
-
-- [x] Resilience4j CircuitBreaker
-- [x] Retry with exponential backoff
-- [x] TimeLimiter (timeout)
+### Stage 4 — Reliability
+- [x] Resilience4j CircuitBreaker, Retry, TimeLimiter
 - [x] Payment idempotency
 - [x] Admin Service
 
-### Stage 5: Observability
-
+### Stage 5 — Observability
 - [x] Prometheus metrics
 - [x] Grafana dashboards
 - [x] Jaeger distributed tracing
 
-### Stage 6: Deployment
-
+### Stage 6 — Deployment
 - [x] Dockerfile for all services
-- [x] Docker Compose production setup
+- [x] Docker Compose
 - [x] Kubernetes manifests
 - [x] Helm charts
+- [x] GitHub Actions CI/CD
+
+### Stage 7 — API Documentation
+- [x] SpringDoc OpenAPI per service
+- [x] Aggregated Swagger UI via API Gateway
+
+---
 
 ## Current Status
 
-Stages 1–6 (Docker) are complete. All services are implemented, running in Docker, and fully observable via Prometheus,
-Grafana, and Jaeger.
+All stages complete. Services are fully implemented, containerized, and observable via Prometheus, Grafana, and Jaeger. Email notifications are delivered via Resend. API documentation is available through aggregated Swagger UI.
 
-## Note
+---
 
-This is a pet project created for learning purposes.
-
-The architecture is intentionally bigger than a simple CRUD application because the goal is to practice real-world
-backend engineering concepts step by step.
+> This is a pet project created for learning purposes. The architecture is intentionally larger than a simple CRUD app — the goal is to practice real-world backend engineering patterns step by step.
