@@ -23,7 +23,12 @@ public class SecurityConfig {
                         .requestMatchers("/api/users/internal/**").permitAll()
                         .requestMatchers("/api/users/me").authenticated()
                         .requestMatchers("/api/users/**").hasRole("ADMIN")
-                        .requestMatchers("/actuator/**").permitAll()
+                        .requestMatchers(
+                                "/actuator/**",
+                                "/v3/api-docs/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html"
+                        ).permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(headerAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)

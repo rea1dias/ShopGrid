@@ -32,3 +32,10 @@ management:
 server:
   port: 8089
 
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    enabled: true
+
+

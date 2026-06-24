@@ -21,7 +21,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(
                         auth -> auth
-                                .requestMatchers("/api/products/**", "/api/categories/**").permitAll()
+                                .requestMatchers("/api/products/**", "/api/categories/**", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                                 .requestMatchers("/api/products/seller/**").hasRole("SELLER")
                                 .requestMatchers("/actuator/**").permitAll()
                                 .anyRequest().authenticated()
