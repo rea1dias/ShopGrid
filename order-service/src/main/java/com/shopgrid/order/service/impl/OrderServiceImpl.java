@@ -9,6 +9,7 @@ import com.shopgrid.order.common.dto.request.OrderRequest;
 import com.shopgrid.order.common.dto.request.ProductInfo;
 import com.shopgrid.order.common.dto.response.OrderItemResponse;
 import com.shopgrid.order.common.dto.response.OrderResponse;
+import com.shopgrid.order.common.dto.response.OrderStatusHistoryResponse;
 import com.shopgrid.order.common.dto.response.UserResponse;
 import com.shopgrid.order.common.enums.CancelReason;
 import com.shopgrid.order.common.enums.ChannelType;
@@ -17,11 +18,12 @@ import com.shopgrid.order.common.enums.OrderStatus;
 import com.shopgrid.order.common.exception.*;
 import com.shopgrid.order.domain.Order;
 import com.shopgrid.order.domain.OrderItem;
+import com.shopgrid.order.domain.OrderStatusHistory;
 import com.shopgrid.order.domain.OutboxEvent;
 import com.shopgrid.order.event.*;
-import com.shopgrid.order.kafka.OrderEventPublisher;
 import com.shopgrid.order.mapper.OrderMapper;
 import com.shopgrid.order.repo.OrderRepository;
+import com.shopgrid.order.repo.OrderStatusHistoryRepository;
 import com.shopgrid.order.repo.OutboxEventRepository;
 import com.shopgrid.order.service.OrderService;
 import lombok.RequiredArgsConstructor;
@@ -49,6 +51,7 @@ public class OrderServiceImpl implements OrderService {
     private final UserServiceClient userServiceClient;
     private final ObjectMapper objectMapper;
     private final OutboxEventRepository outboxEventRepository;
+    private final OrderStatusHistoryRepository orderStatusHistoryRepository;
 
     @Override
     @Transactional
@@ -80,6 +83,8 @@ public class OrderServiceImpl implements OrderService {
         if (!order.getStatus().canTransition(status)) {
             throw new InvalidOrderStatusTransitionException("Cannot change order status from " + order.getStatus() + " to " + status);
         }
+        OrderStatusHistory history = new OrderStatusHistory(order, order.getStatus(), status);
+        orderStatusHistoryRepository.save(history);
         order.setStatus(status);
         order.setUpdatedAt(Instant.now());
         orderRepository.save(order);
@@ -132,6 +137,8 @@ public class OrderServiceImpl implements OrderService {
         if (!order.getStatus().canTransition(OrderStatus.CANCELLED)) {
             throw new InvalidOrderStatusTransitionException("Cannot change order status from " + order.getStatus() + " to " + OrderStatus.CANCELLED);
         }
+        OrderStatusHistory history = new OrderStatusHistory(order, order.getStatus(), OrderStatus.CANCELLED);
+        orderStatusHistoryRepository.save(history);
         order.setStatus(OrderStatus.CANCELLED);
         order.setUpdatedAt(Instant.now());
         order.setCancelReason(reason);
@@ -181,5 +188,15 @@ public class OrderServiceImpl implements OrderService {
             throw new EventSerializationException(orderId);
         }
         return mapper.toResponse(order);
+    }
+
+    @Override
+    @Transactional
+    public List<OrderStatusHistoryResponse> getHistory(UUID userId, UUID orderId) {
+        Order order = orderRepository.findById(orderId).orElseThrow(() -> new NotFoundException(orderId));
+        if (!order.getUserId().equals(userId)) {
+            throw new AccessDeniedException(userId);
+        }
+        return order.getStatusHistory().stream().map(mapper::toHistoryResponse).toList();
     }
 }

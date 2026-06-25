@@ -44,6 +44,14 @@ public class Order {
             orphanRemoval = true)
     private List<OrderItem> items = new ArrayList<>();
 
+    @OneToMany(
+            mappedBy = "order",
+            fetch = FetchType.LAZY,
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private List<OrderStatusHistory> statusHistory = new ArrayList<>();
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = true)
     private CancelReason cancelReason;
