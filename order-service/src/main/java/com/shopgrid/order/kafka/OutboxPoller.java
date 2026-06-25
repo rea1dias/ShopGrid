@@ -44,6 +44,7 @@ public class OutboxPoller {
             case "order.created" -> "order.created";
             case "order.cancelled" -> "order.cancelled";
             case "order.confirmed.notification", "order.cancelled.notification" -> "notification.requests.v1";
+            case "payment.requested" -> "payment.requested";
             default -> throw new IllegalArgumentException("Unknown event type: " + eventType);
         };
     }

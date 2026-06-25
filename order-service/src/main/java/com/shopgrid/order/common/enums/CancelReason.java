@@ -6,5 +6,6 @@ public enum CancelReason {
     PAYMENT_FAILED,
     DUPLICATE_ORDER,
     DELIVERY_UNAVAILABLE,
+    PAYMENT_TIMEOUT,
     OTHER
 }

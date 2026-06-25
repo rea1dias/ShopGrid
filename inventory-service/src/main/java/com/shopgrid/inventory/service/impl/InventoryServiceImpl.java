@@ -36,8 +36,7 @@ public class InventoryServiceImpl implements InventoryService {
     public void reserveStock(OrderCreatedEvent event) {
         try {
             for (OrderItemEvent item : event.items()) {
-                Inventory inventory = inventoryRepository.findByProductId(item.productId())
-                        .orElseThrow(() -> new NotFoundException(item.productId()));
+                Inventory inventory = inventoryRepository.findByProductId(item.productId()).orElseThrow(() -> new NotFoundException(item.productId()));
                 if (inventory.getQuantity() < item.quantity()) {
                     throw new InsufficientStockException(item.productId());
                 }
@@ -66,8 +65,7 @@ public class InventoryServiceImpl implements InventoryService {
     public void releaseStock(OrderCancelledEvent event) {
         try {
             for (OrderItemEvent item : event.items()) {
-                Inventory inventory = inventoryRepository.findByProductId(item.productId())
-                        .orElseThrow(() -> new NotFoundException(item.productId()));
+                Inventory inventory = inventoryRepository.findByProductId(item.productId()).orElseThrow(() -> new NotFoundException(item.productId()));
                 inventory.setQuantity(inventory.getQuantity() + item.quantity());
                 inventory.setReserved(inventory.getReserved() - item.quantity());
                 inventoryRepository.save(inventory);
@@ -84,11 +82,7 @@ public class InventoryServiceImpl implements InventoryService {
             log.info("Inventory already exists: {}", event.productId());
             return;
         }
-        Inventory inventory = new Inventory(
-                event.productId(),
-                0,
-                0
-        );
+        Inventory inventory = new Inventory(event.productId(), 0, 0);
         inventoryRepository.save(inventory);
     }
 
@@ -96,8 +90,7 @@ public class InventoryServiceImpl implements InventoryService {
     @PreAuthorize("hasRole('ADMIN')")
     @Transactional
     public InventoryResponse add(UUID productId, InventoryUpdateRequest request) {
-        Inventory inventory = inventoryRepository.findByProductId(productId)
-                .orElseThrow(() -> new NotFoundException(productId));
+        Inventory inventory = inventoryRepository.findByProductId(productId).orElseThrow(() -> new NotFoundException(productId));
         inventory.setQuantity(inventory.getQuantity() + request.quantity());
         return mapper.toResponse(inventoryRepository.save(inventory));
     }
@@ -105,8 +98,7 @@ public class InventoryServiceImpl implements InventoryService {
     @Override
     @PreAuthorize("hasRole('ADMIN')")
     public InventoryResponse get(UUID productId) {
-        Inventory inventory = inventoryRepository.findByProductId(productId)
-                .orElseThrow(() -> new NotFoundException(productId));
+        Inventory inventory = inventoryRepository.findByProductId(productId).orElseThrow(() -> new NotFoundException(productId));
         return mapper.toResponse(inventory);
     }
 }
