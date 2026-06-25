@@ -37,4 +37,14 @@ public class ApiExceptionHandler {
     public ErrorResponse handleInvalidOrderStatusTransitionException(InvalidOrderStatusTransitionException e) {
         return new ErrorResponse(500, e.getMessage(), Instant.now());
     }
+
+    @ExceptionHandler(CannotCancelAllItemsException.class)
+    public ErrorResponse handleCannotCancelAllItemsException(CannotCancelAllItemsException e) {
+        return new ErrorResponse(500, e.getMessage(), Instant.now());
+    }
+
+    @ExceptionHandler(EventSerializationException.class)
+    public ErrorResponse handleEventSerializationException(EventSerializationException e) {
+        return new ErrorResponse(500, e.getMessage(), Instant.now());
+    }
 }

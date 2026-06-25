@@ -1,5 +1,6 @@
 package com.shopgrid.order.controller;
 
+import com.shopgrid.order.common.dto.request.CancelItemRequest;
 import com.shopgrid.order.common.dto.request.CancelRequest;
 import com.shopgrid.order.common.dto.request.OrderRequest;
 import com.shopgrid.order.common.dto.response.OrderResponse;
@@ -40,4 +41,10 @@ public class OrderController {
     public ResponseEntity<OrderResponse> cancel(@PathVariable UUID orderId, @RequestHeader("X-User-Id") UUID userId, @RequestBody CancelRequest request) {
         return ResponseEntity.status(HttpStatus.OK).body(service.cancel(orderId, userId, request.cancelReason()));
     }
+
+    @PostMapping("/cancelItems/{orderId}")
+    public ResponseEntity<OrderResponse> cancelItems(@PathVariable UUID orderId, @RequestHeader("X-User-Id") UUID userId, @Valid @RequestBody CancelItemRequest request) {
+        return ResponseEntity.status(HttpStatus.OK).body(service.cancelItems(orderId, userId, request));
+    }
+
 }

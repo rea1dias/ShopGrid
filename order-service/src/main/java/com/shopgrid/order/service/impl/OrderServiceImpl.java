@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.shopgrid.order.client.ProductServiceClient;
 import com.shopgrid.order.client.UserServiceClient;
+import com.shopgrid.order.common.dto.request.CancelItemRequest;
 import com.shopgrid.order.common.dto.request.OrderRequest;
 import com.shopgrid.order.common.dto.request.ProductInfo;
 import com.shopgrid.order.common.dto.response.OrderItemResponse;
@@ -13,9 +14,7 @@ import com.shopgrid.order.common.enums.CancelReason;
 import com.shopgrid.order.common.enums.ChannelType;
 import com.shopgrid.order.common.enums.NotificationTemplateType;
 import com.shopgrid.order.common.enums.OrderStatus;
-import com.shopgrid.order.common.exception.AccessDeniedException;
-import com.shopgrid.order.common.exception.InvalidOrderStatusTransitionException;
-import com.shopgrid.order.common.exception.NotFoundException;
+import com.shopgrid.order.common.exception.*;
 import com.shopgrid.order.domain.Order;
 import com.shopgrid.order.domain.OrderItem;
 import com.shopgrid.order.domain.OutboxEvent;
@@ -46,7 +45,6 @@ public class OrderServiceImpl implements OrderService {
     private static final Logger log = LoggerFactory.getLogger(OrderServiceImpl.class);
     private final OrderRepository orderRepository;
     private final ProductServiceClient productServiceClient;
-    private final OrderEventPublisher publisher;
     private final OrderMapper mapper;
     private final UserServiceClient userServiceClient;
     private final ObjectMapper objectMapper;
@@ -69,9 +67,9 @@ public class OrderServiceImpl implements OrderService {
             String payload = objectMapper.writeValueAsString(event);
             outboxEventRepository.save(new OutboxEvent("order.created", payload));
         } catch (JsonProcessingException e) {
-            throw new IllegalStateException("Failed to serialize OrderCreatedEvent", e);
+            throw new EventSerializationException(order.getId());
         }
-        List<OrderItemResponse> responses = items.stream().map(item -> new OrderItemResponse(item.getProductId(), item.getProductName(), item.getPrice(), item.getQuantity())).toList();
+        List<OrderItemResponse> responses = items.stream().map(item -> new OrderItemResponse(item.getId(), item.getProductId(), item.getProductName(), item.getPrice(), item.getQuantity())).toList();
         return new OrderResponse(saved.getId(), saved.getUserId(), saved.getStatus(), saved.getTotalPrice(), saved.getCreatedAt(), saved.getUpdatedAt(), responses);
     }
 
@@ -88,29 +86,18 @@ public class OrderServiceImpl implements OrderService {
 
         if (status.equals(OrderStatus.RESERVED)) {
             try {
-                PaymentRequestedEvent event = new PaymentRequestedEvent(
-                        orderId,
-                        order.getUserId(),
-                        order.getTotalPrice());
+                PaymentRequestedEvent event = new PaymentRequestedEvent(orderId, order.getUserId(), order.getTotalPrice());
                 String payload = objectMapper.writeValueAsString(event);
                 outboxEventRepository.save(new OutboxEvent("payment.requested", payload));
             } catch (JsonProcessingException e) {
-                throw new IllegalStateException("Failed to serialize PaymentRequestedEvent", e);
+                throw new EventSerializationException(orderId);
             }
         }
 
         if (status.equals(OrderStatus.CONFIRMED)) {
             try {
                 UserResponse user = userServiceClient.getUser(order.getUserId());
-                NotificationEvent event = new NotificationEvent(
-                        "order-confirmed-" + orderId,
-                        order.getUserId(),
-                        orderId,
-                        ChannelType.EMAIL,
-                        NotificationTemplateType.ORDER_CONFIRMED,
-                        user.email(),
-                        order.getTotalPrice(),
-                        Map.of("user", user.firstName(), "email", user.email()));
+                NotificationEvent event = new NotificationEvent("order-confirmed-" + orderId, order.getUserId(), orderId, ChannelType.EMAIL, NotificationTemplateType.ORDER_CONFIRMED, user.email(), order.getTotalPrice(), Map.of("user", user.firstName(), "email", user.email()));
                 String payload = objectMapper.writeValueAsString(event);
                 outboxEventRepository.save(new OutboxEvent("order.confirmed.notification", payload));
             } catch (Exception e) {
@@ -155,7 +142,7 @@ public class OrderServiceImpl implements OrderService {
             String payload = objectMapper.writeValueAsString(event);
             outboxEventRepository.save(new OutboxEvent("order.cancelled", payload));
         } catch (JsonProcessingException e) {
-            throw new IllegalStateException("Failed to serialize OrderCancelledEvent", e);
+            throw new EventSerializationException(order.getId());
         }
         try {
             UserResponse user = userServiceClient.getUser(order.getUserId());
@@ -164,6 +151,34 @@ public class OrderServiceImpl implements OrderService {
             outboxEventRepository.save(new OutboxEvent("order.cancelled.notification", payload));
         } catch (Exception e) {
             log.warn("Could not send notification for orderId: {}", orderId);
+            throw new EventSerializationException(order.getId());
+        }
+        return mapper.toResponse(order);
+    }
+
+    @Override
+    @Transactional
+    public OrderResponse cancelItems(UUID orderId, UUID userId, CancelItemRequest request) {
+        Order order = orderRepository.findById(orderId).orElseThrow(() -> new NotFoundException(orderId));
+        if (!order.getStatus().equals(OrderStatus.PENDING) && !order.getStatus().equals(OrderStatus.RESERVED)) {
+            throw new InvalidOrderStatusTransitionException("This order is can not be cancelled by status");
+        }
+        List<OrderItem> cancelItems = order.getItems().stream().filter(item -> request.itemIds().contains(item.getId())).toList();
+        if (cancelItems.size() == order.getItems().size()) {
+            throw new CannotCancelAllItemsException(orderId);
+        }
+        order.getItems().removeAll(cancelItems);
+        order.setUpdatedAt(Instant.now());
+        BigDecimal newTotalPrice = order.getItems().stream().map(item -> item.getPrice().multiply(BigDecimal.valueOf(item.getQuantity()))).reduce(BigDecimal.ZERO, BigDecimal::add);
+        order.setTotalPrice(newTotalPrice);
+        Order saved = orderRepository.save(order);
+        try {
+            List<OrderItemEvent> cancelledItems = cancelItems.stream().map(item -> new OrderItemEvent(item.getProductId(), item.getProductName(), item.getPrice(), item.getQuantity())).toList();
+            OrderCancelledEvent event = new OrderCancelledEvent(saved.getId(), saved.getUserId(), cancelledItems, saved.getTotalPrice(), saved.getCreatedAt());
+            String payload = objectMapper.writeValueAsString(event);
+            outboxEventRepository.save(new OutboxEvent("order.cancelled", payload));
+        } catch (JsonProcessingException e) {
+            throw new EventSerializationException(orderId);
         }
         return mapper.toResponse(order);
     }
