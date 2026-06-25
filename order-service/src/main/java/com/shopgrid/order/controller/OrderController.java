@@ -4,6 +4,7 @@ import com.shopgrid.order.common.dto.request.CancelItemRequest;
 import com.shopgrid.order.common.dto.request.CancelRequest;
 import com.shopgrid.order.common.dto.request.OrderRequest;
 import com.shopgrid.order.common.dto.response.OrderResponse;
+import com.shopgrid.order.common.dto.response.OrderStatusHistoryResponse;
 import com.shopgrid.order.service.OrderService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -45,6 +47,11 @@ public class OrderController {
     @PostMapping("/cancelItems/{orderId}")
     public ResponseEntity<OrderResponse> cancelItems(@PathVariable UUID orderId, @RequestHeader("X-User-Id") UUID userId, @Valid @RequestBody CancelItemRequest request) {
         return ResponseEntity.status(HttpStatus.OK).body(service.cancelItems(orderId, userId, request));
+    }
+
+    @GetMapping("/{orderId}/history")
+    public ResponseEntity<List<OrderStatusHistoryResponse>> history(@PathVariable UUID orderId, @RequestHeader("X-User-Id") UUID userId) {
+        return ResponseEntity.status(HttpStatus.OK).body(service.getHistory(userId, orderId));
     }
 
 }
