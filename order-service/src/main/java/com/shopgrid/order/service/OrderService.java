@@ -1,5 +1,6 @@
 package com.shopgrid.order.service;
 
+import com.shopgrid.order.common.dto.request.CancelItemRequest;
 import com.shopgrid.order.common.dto.request.OrderRequest;
 import com.shopgrid.order.common.dto.response.OrderResponse;
 import com.shopgrid.order.common.enums.CancelReason;
@@ -7,6 +8,7 @@ import com.shopgrid.order.common.enums.OrderStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.util.List;
 import java.util.UUID;
 
 public interface OrderService {
@@ -20,6 +22,8 @@ public interface OrderService {
     Page<OrderResponse> getMyOrders(UUID userId, Pageable pageable);
 
     OrderResponse cancel(UUID orderId, UUID userId, CancelReason reason);
+
+    OrderResponse cancelItems(UUID orderId, UUID userId, CancelItemRequest request);
 
 
 }
