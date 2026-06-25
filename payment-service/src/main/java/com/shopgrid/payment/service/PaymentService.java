@@ -1,8 +1,8 @@
 package com.shopgrid.payment.service;
 
-import com.shopgrid.payment.event.StockReservedEvent;
+import com.shopgrid.payment.event.PaymentRequestedEvent;
 
 public interface PaymentService {
 
-    void processPayment(StockReservedEvent event);
+    void processPayment(PaymentRequestedEvent event);
 }

@@ -31,4 +31,10 @@ public class ApiExceptionHandler {
     public ErrorResponse handleOrderAlreadyException(OrderAlreadyException e) {
         return new ErrorResponse(500, e.getMessage(), Instant.now());
     }
+
+    @ExceptionHandler(InvalidOrderStatusTransitionException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ErrorResponse handleInvalidOrderStatusTransitionException(InvalidOrderStatusTransitionException e) {
+        return new ErrorResponse(500, e.getMessage(), Instant.now());
+    }
 }

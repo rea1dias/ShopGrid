@@ -14,15 +14,12 @@ import com.shopgrid.order.common.enums.ChannelType;
 import com.shopgrid.order.common.enums.NotificationTemplateType;
 import com.shopgrid.order.common.enums.OrderStatus;
 import com.shopgrid.order.common.exception.AccessDeniedException;
+import com.shopgrid.order.common.exception.InvalidOrderStatusTransitionException;
 import com.shopgrid.order.common.exception.NotFoundException;
-import com.shopgrid.order.common.exception.OrderAlreadyException;
 import com.shopgrid.order.domain.Order;
 import com.shopgrid.order.domain.OrderItem;
 import com.shopgrid.order.domain.OutboxEvent;
-import com.shopgrid.order.event.NotificationEvent;
-import com.shopgrid.order.event.OrderCancelledEvent;
-import com.shopgrid.order.event.OrderCreatedEvent;
-import com.shopgrid.order.event.OrderItemEvent;
+import com.shopgrid.order.event.*;
 import com.shopgrid.order.kafka.OrderEventPublisher;
 import com.shopgrid.order.mapper.OrderMapper;
 import com.shopgrid.order.repo.OrderRepository;
@@ -38,7 +35,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -83,22 +79,43 @@ public class OrderServiceImpl implements OrderService {
     @Transactional
     public void update(UUID orderId, OrderStatus status) {
         Order order = orderRepository.findById(orderId).orElseThrow(() -> new NotFoundException(orderId));
+        if (!order.getStatus().canTransition(status)) {
+            throw new InvalidOrderStatusTransitionException("Cannot change order status from " + order.getStatus() + " to " + status);
+        }
         order.setStatus(status);
         order.setUpdatedAt(Instant.now());
         orderRepository.save(order);
-        try {
-            if (status.equals(OrderStatus.CONFIRMED)) {
-                UserResponse user = userServiceClient.getUser(order.getUserId());
-                Map<String, Object> context = new HashMap<>();
-                context.put("user", user.firstName());
-                context.put("email", user.email());
 
-                NotificationEvent event = new NotificationEvent("order-confirmed-" + orderId, order.getUserId(), orderId, ChannelType.EMAIL, NotificationTemplateType.ORDER_CONFIRMED, user.email(), order.getTotalPrice(), context);
+        if (status.equals(OrderStatus.RESERVED)) {
+            try {
+                PaymentRequestedEvent event = new PaymentRequestedEvent(
+                        orderId,
+                        order.getUserId(),
+                        order.getTotalPrice());
+                String payload = objectMapper.writeValueAsString(event);
+                outboxEventRepository.save(new OutboxEvent("payment.requested", payload));
+            } catch (JsonProcessingException e) {
+                throw new IllegalStateException("Failed to serialize PaymentRequestedEvent", e);
+            }
+        }
+
+        if (status.equals(OrderStatus.CONFIRMED)) {
+            try {
+                UserResponse user = userServiceClient.getUser(order.getUserId());
+                NotificationEvent event = new NotificationEvent(
+                        "order-confirmed-" + orderId,
+                        order.getUserId(),
+                        orderId,
+                        ChannelType.EMAIL,
+                        NotificationTemplateType.ORDER_CONFIRMED,
+                        user.email(),
+                        order.getTotalPrice(),
+                        Map.of("user", user.firstName(), "email", user.email()));
                 String payload = objectMapper.writeValueAsString(event);
                 outboxEventRepository.save(new OutboxEvent("order.confirmed.notification", payload));
+            } catch (Exception e) {
+                log.warn("Could not send notification for orderId: {}", orderId);
             }
-        } catch (Exception e) {
-            log.warn("Could not fetch user {} for notification, skipping. Reason: {}", order.getUserId(), e.getMessage());
         }
     }
 
@@ -125,8 +142,8 @@ public class OrderServiceImpl implements OrderService {
         if (!userId.equals(order.getUserId())) {
             throw new AccessDeniedException(userId);
         }
-        if (OrderStatus.CANCELLED.equals(order.getStatus())) {
-            throw new OrderAlreadyException(orderId);
+        if (!order.getStatus().canTransition(OrderStatus.CANCELLED)) {
+            throw new InvalidOrderStatusTransitionException("Cannot change order status from " + order.getStatus() + " to " + OrderStatus.CANCELLED);
         }
         order.setStatus(OrderStatus.CANCELLED);
         order.setUpdatedAt(Instant.now());
