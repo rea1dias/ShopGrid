@@ -14,6 +14,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -26,8 +28,9 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     @Transactional
     public void processPayment(PaymentRequestedEvent event) {
-        if (paymentRepository.existsByOrderId(event.orderId())) {
-            log.warn("Payment already exists for orderId: {}, skipping", event.orderId());
+        Optional<Payment> existing = paymentRepository.findByOrderId(event.orderId());
+        if (existing.isPresent() && existing.get().getStatus().equals(PaymentStatus.SUCCESS)) {
+            log.warn("Payment already SUCCESS for orderId: {}, skipping", event.orderId());
             return;
         }
         Payment payment = new Payment(event.orderId(), event.userId(), event.totalPrice());

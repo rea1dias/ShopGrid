@@ -28,7 +28,5 @@ public interface OrderService {
 
     List<OrderStatusHistoryResponse> getHistory(UUID userId, UUID orderId);
 
-
-
-
+    OrderResponse retryPayment(UUID orderId, UUID userId);
 }
