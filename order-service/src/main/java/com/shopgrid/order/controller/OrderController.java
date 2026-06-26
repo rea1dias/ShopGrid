@@ -54,4 +54,8 @@ public class OrderController {
         return ResponseEntity.status(HttpStatus.OK).body(service.getHistory(userId, orderId));
     }
 
+    @PostMapping("/{orderId}/retry")
+    public ResponseEntity<OrderResponse> retryPayment(@PathVariable UUID orderId, @RequestHeader("X-User-Id") UUID userId) {
+        return ResponseEntity.status(HttpStatus.OK).body(service.retryPayment(orderId, userId));
+    }
 }

@@ -56,6 +56,9 @@ public class Order {
     @Column(nullable = true)
     private CancelReason cancelReason;
 
+    @Column(nullable = true)
+    private Integer paymentAttempts = 0;
+
     public Order(UUID userId,
                  OrderStatus status,
                  BigDecimal totalPrice,

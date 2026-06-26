@@ -17,6 +17,13 @@ public enum OrderStatus {
         }
 
     },
+    PAYMENT_FAILED {
+        @Override
+        public Set<OrderStatus> allowedTransitions() {
+            return Set.of(CONFIRMED, CANCELLED);
+        }
+
+    },
     CONFIRMED {
         @Override
         public Set<OrderStatus> allowedTransitions() {

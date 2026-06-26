@@ -2,6 +2,7 @@ package com.shopgrid.order.kafka;
 
 import com.shopgrid.order.common.enums.OrderStatus;
 import com.shopgrid.order.event.PaymentCompletedEvent;
+import com.shopgrid.order.event.PaymentFailedEvent;
 import com.shopgrid.order.event.StockFailedEvent;
 import com.shopgrid.order.event.StockReservedEvent;
 import com.shopgrid.order.service.OrderService;
@@ -36,5 +37,12 @@ public class OrderEventConsumer {
     public void handlePaymentCompleted(PaymentCompletedEvent event) {
         log.info("Received payment completed event: {}", event.orderId());
         service.update(event.orderId(), OrderStatus.CONFIRMED);
+    }
+
+    @KafkaListener(topics = "payment.failed", groupId = "order-service",
+            properties = {"spring.json.value.default.type=com.shopgrid.order.event.PaymentFailedEvent"})
+    public void handlePaymentFailed(PaymentFailedEvent event) {
+        log.info("Received payment failed event: {}", event.orderId());
+        service.update(event.orderId(), OrderStatus.PAYMENT_FAILED);
     }
 }

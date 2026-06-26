@@ -52,5 +52,4 @@ public class InventoryEventConsumer {
             log.error("Failed to deserialize OrderCancelledEvent: {}", e.getMessage());
         }
     }
-
 }

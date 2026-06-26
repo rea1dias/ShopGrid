@@ -199,4 +199,35 @@ public class OrderServiceImpl implements OrderService {
         }
         return order.getStatusHistory().stream().map(mapper::toHistoryResponse).toList();
     }
+
+    @Override
+    @Transactional
+    public OrderResponse retryPayment(UUID orderId, UUID userId) {
+        Order order = orderRepository.findById(orderId).orElseThrow(() -> new NotFoundException(orderId));
+        if (!order.getUserId().equals(userId)) {
+            throw new AccessDeniedException(userId);
+        }
+        if (!order.getStatus().equals(OrderStatus.PAYMENT_FAILED)) {
+            throw new IllegalStateException("This order is can not be retry payment");
+        }
+        if (order.getPaymentAttempts() >= 3) {
+            order.setStatus(OrderStatus.CANCELLED);
+            order.setCancelReason(CancelReason.PAYMENT_FAILED);
+            order.setUpdatedAt(Instant.now());
+            orderRepository.save(order);
+            throw new IllegalStateException("You dont have retry attempts");
+        }
+        order.setStatus(OrderStatus.RESERVED);
+        order.setUpdatedAt(Instant.now());
+        order.setPaymentAttempts(order.getPaymentAttempts() + 1);
+        orderRepository.save(order);
+        try {
+            PaymentRequestedEvent event = new PaymentRequestedEvent(orderId, order.getUserId(), order.getTotalPrice());
+            String payload = objectMapper.writeValueAsString(event);
+            outboxEventRepository.save(new OutboxEvent("payment.requested", payload));
+        } catch (JsonProcessingException e) {
+            throw new EventSerializationException(orderId);
+        }
+        return mapper.toResponse(order);
+    }
 }
