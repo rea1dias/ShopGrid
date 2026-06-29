@@ -2,10 +2,13 @@ package com.shopgrid.order.service;
 
 import com.shopgrid.order.common.dto.request.CancelItemRequest;
 import com.shopgrid.order.common.dto.request.OrderRequest;
+import com.shopgrid.order.common.dto.request.RefundRequest;
 import com.shopgrid.order.common.dto.response.OrderResponse;
 import com.shopgrid.order.common.dto.response.OrderStatusHistoryResponse;
+import com.shopgrid.order.common.dto.response.RefundResponse;
 import com.shopgrid.order.common.enums.CancelReason;
 import com.shopgrid.order.common.enums.OrderStatus;
+import com.shopgrid.order.common.enums.RefundReason;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -29,4 +32,7 @@ public interface OrderService {
     List<OrderStatusHistoryResponse> getHistory(UUID userId, UUID orderId);
 
     OrderResponse retryPayment(UUID orderId, UUID userId);
+
+    RefundResponse refund(UUID userId, RefundRequest request);
+
 }

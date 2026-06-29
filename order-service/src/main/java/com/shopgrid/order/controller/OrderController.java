@@ -3,8 +3,10 @@ package com.shopgrid.order.controller;
 import com.shopgrid.order.common.dto.request.CancelItemRequest;
 import com.shopgrid.order.common.dto.request.CancelRequest;
 import com.shopgrid.order.common.dto.request.OrderRequest;
+import com.shopgrid.order.common.dto.request.RefundRequest;
 import com.shopgrid.order.common.dto.response.OrderResponse;
 import com.shopgrid.order.common.dto.response.OrderStatusHistoryResponse;
+import com.shopgrid.order.common.dto.response.RefundResponse;
 import com.shopgrid.order.service.OrderService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -57,5 +59,10 @@ public class OrderController {
     @PostMapping("/{orderId}/retry")
     public ResponseEntity<OrderResponse> retryPayment(@PathVariable UUID orderId, @RequestHeader("X-User-Id") UUID userId) {
         return ResponseEntity.status(HttpStatus.OK).body(service.retryPayment(orderId, userId));
+    }
+
+    @PostMapping("/refund")
+    public ResponseEntity<RefundResponse> refund(@RequestHeader("X-User-Id") UUID userId, @RequestBody RefundRequest request) {
+        return ResponseEntity.status(HttpStatus.OK).body(service.refund(userId, request));
     }
 }

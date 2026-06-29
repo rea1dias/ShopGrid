@@ -13,7 +13,7 @@ public enum OrderStatus {
     RESERVED {
         @Override
         public Set<OrderStatus> allowedTransitions() {
-            return Set.of(CONFIRMED, CANCELLED);
+            return Set.of(CONFIRMED, PAYMENT_FAILED, CANCELLED);
         }
 
     },
@@ -37,6 +37,30 @@ public enum OrderStatus {
         }
     },
     DELIVERED {
+        @Override
+        public Set<OrderStatus> allowedTransitions() {
+            return Set.of(REFUND_REQUESTED);
+        }
+    },
+    REFUND_REQUESTED {
+        @Override
+        public Set<OrderStatus> allowedTransitions() {
+            return Set.of(REFUND_APPROVED, REFUND_REJECTED);
+        }
+    },
+    REFUND_APPROVED {
+        @Override
+        public Set<OrderStatus> allowedTransitions() {
+            return Set.of(REFUND_COMPLETED);
+        }
+    },
+    REFUND_REJECTED {
+        @Override
+        public Set<OrderStatus> allowedTransitions() {
+            return Set.of();
+        }
+    },
+    REFUND_COMPLETED {
         @Override
         public Set<OrderStatus> allowedTransitions() {
             return Set.of();
