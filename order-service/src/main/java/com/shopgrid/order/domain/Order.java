@@ -37,6 +37,9 @@ public class Order {
     @UpdateTimestamp
     private Instant updatedAt;
 
+    @Column(nullable = true)
+    private Instant deliveredAt;
+
     @OneToMany(
             mappedBy = "order",
             fetch = FetchType.LAZY,

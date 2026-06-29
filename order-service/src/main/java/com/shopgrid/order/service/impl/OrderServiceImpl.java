@@ -7,24 +7,18 @@ import com.shopgrid.order.client.UserServiceClient;
 import com.shopgrid.order.common.dto.request.CancelItemRequest;
 import com.shopgrid.order.common.dto.request.OrderRequest;
 import com.shopgrid.order.common.dto.request.ProductInfo;
-import com.shopgrid.order.common.dto.response.OrderItemResponse;
-import com.shopgrid.order.common.dto.response.OrderResponse;
-import com.shopgrid.order.common.dto.response.OrderStatusHistoryResponse;
-import com.shopgrid.order.common.dto.response.UserResponse;
-import com.shopgrid.order.common.enums.CancelReason;
-import com.shopgrid.order.common.enums.ChannelType;
-import com.shopgrid.order.common.enums.NotificationTemplateType;
-import com.shopgrid.order.common.enums.OrderStatus;
+import com.shopgrid.order.common.dto.request.RefundRequest;
+import com.shopgrid.order.common.dto.response.*;
+import com.shopgrid.order.common.enums.*;
 import com.shopgrid.order.common.exception.*;
-import com.shopgrid.order.domain.Order;
-import com.shopgrid.order.domain.OrderItem;
-import com.shopgrid.order.domain.OrderStatusHistory;
-import com.shopgrid.order.domain.OutboxEvent;
+import com.shopgrid.order.domain.*;
 import com.shopgrid.order.event.*;
 import com.shopgrid.order.mapper.OrderMapper;
+import com.shopgrid.order.mapper.RefundMapper;
 import com.shopgrid.order.repo.OrderRepository;
 import com.shopgrid.order.repo.OrderStatusHistoryRepository;
 import com.shopgrid.order.repo.OutboxEventRepository;
+import com.shopgrid.order.repo.RefundRepository;
 import com.shopgrid.order.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -35,6 +29,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -52,6 +47,8 @@ public class OrderServiceImpl implements OrderService {
     private final ObjectMapper objectMapper;
     private final OutboxEventRepository outboxEventRepository;
     private final OrderStatusHistoryRepository orderStatusHistoryRepository;
+    private final RefundMapper refundMapper;
+    private final RefundRepository refundRepository;
 
     @Override
     @Transactional
@@ -134,6 +131,7 @@ public class OrderServiceImpl implements OrderService {
         if (!userId.equals(order.getUserId())) {
             throw new AccessDeniedException(userId);
         }
+
         if (!order.getStatus().canTransition(OrderStatus.CANCELLED)) {
             throw new InvalidOrderStatusTransitionException("Cannot change order status from " + order.getStatus() + " to " + OrderStatus.CANCELLED);
         }
@@ -215,7 +213,7 @@ public class OrderServiceImpl implements OrderService {
             order.setCancelReason(CancelReason.PAYMENT_FAILED);
             order.setUpdatedAt(Instant.now());
             orderRepository.save(order);
-            throw new IllegalStateException("You dont have retry attempts");
+            throw new IllegalStateException("You don't have retry attempts");
         }
         order.setStatus(OrderStatus.RESERVED);
         order.setUpdatedAt(Instant.now());
@@ -229,5 +227,64 @@ public class OrderServiceImpl implements OrderService {
             throw new EventSerializationException(orderId);
         }
         return mapper.toResponse(order);
+    }
+
+    @Override
+    @Transactional
+    public RefundResponse refund(UUID userId, RefundRequest request) {
+        Order order = orderRepository.findById(request.orderId()).orElseThrow(() -> new NotFoundException(request.orderId()));
+        if (!order.getUserId().equals(userId)) {
+            throw new AccessDeniedException(userId);
+        }
+        if (!order.getStatus().equals(OrderStatus.DELIVERED)) {
+            throw new IllegalStateException("This order is can not be refund");
+        }
+        log.info("deliveredAt: {}", order.getDeliveredAt());
+        log.info("isWithin14Days: {}", isWithin14Days(order.getDeliveredAt()));
+
+        if (!isWithin14Days(order.getDeliveredAt())) {
+            throw new IllegalStateException("More than 14 days have passed since the order was delivered");
+        }
+        List<RefundItem> refundItems = order.getItems()
+                .stream()
+                .filter(orderItem -> request.orderItemIds().contains(orderItem.getId()))
+                .map(orderItem -> {
+                    RefundItem refundItem = new RefundItem();
+                    refundItem.setOrderItemId(orderItem.getId());
+                    refundItem.setProductId(orderItem.getProductId());
+                    refundItem.setQuantity(orderItem.getQuantity());
+                    refundItem.setPrice(orderItem.getPrice());
+                    return refundItem;
+                })
+                .toList();
+        if (refundItems.isEmpty()) {
+            throw new NotFoundException(order.getId());
+        }
+        BigDecimal refundAmount = refundItems.stream()
+                .map(item -> item.getPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        order.setStatus(OrderStatus.REFUND_REQUESTED);
+        order.setUpdatedAt(Instant.now());
+        orderRepository.save(order);
+        Refund saved = refundRepository.save(new Refund(
+                order.getId(),
+                userId,
+                RefundStatus.REQUESTED,
+                refundItems,
+                request.reason(),
+                refundAmount,
+                request.comment()));
+        return refundMapper.toResponse(saved);
+    }
+
+    public static boolean isWithin14Days(Instant deliveredAt) {
+        if (deliveredAt == null) {
+            return false;
+        }
+        Instant now = Instant.now();
+        Duration duration = Duration.between(deliveredAt, now);
+        log.info("duration days: {}", duration.toDays());
+        log.info("isNegative: {}", duration.isNegative());
+        return !duration.isNegative() && duration.toDays() <= 14;
     }
 }
