@@ -4,10 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.shopgrid.order.client.ProductServiceClient;
 import com.shopgrid.order.client.UserServiceClient;
-import com.shopgrid.order.common.dto.request.CancelItemRequest;
-import com.shopgrid.order.common.dto.request.OrderRequest;
-import com.shopgrid.order.common.dto.request.ProductInfo;
-import com.shopgrid.order.common.dto.request.RefundRequest;
+import com.shopgrid.order.common.dto.request.*;
 import com.shopgrid.order.common.dto.response.*;
 import com.shopgrid.order.common.enums.*;
 import com.shopgrid.order.common.exception.*;
@@ -15,10 +12,7 @@ import com.shopgrid.order.domain.*;
 import com.shopgrid.order.event.*;
 import com.shopgrid.order.mapper.OrderMapper;
 import com.shopgrid.order.mapper.RefundMapper;
-import com.shopgrid.order.repo.OrderRepository;
-import com.shopgrid.order.repo.OrderStatusHistoryRepository;
-import com.shopgrid.order.repo.OutboxEventRepository;
-import com.shopgrid.order.repo.RefundRepository;
+import com.shopgrid.order.repo.*;
 import com.shopgrid.order.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -49,6 +43,7 @@ public class OrderServiceImpl implements OrderService {
     private final OrderStatusHistoryRepository orderStatusHistoryRepository;
     private final RefundMapper refundMapper;
     private final RefundRepository refundRepository;
+    private final RefundItemRepository refundItemRepository;
 
     @Override
     @Transactional
@@ -231,7 +226,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public RefundResponse refund(UUID userId, RefundRequest request) {
+    public RefundResponse createRefund(UUID userId, RefundRequest request) {
         Order order = orderRepository.findById(request.orderId()).orElseThrow(() -> new NotFoundException(request.orderId()));
         if (!order.getUserId().equals(userId)) {
             throw new AccessDeniedException(userId);
@@ -274,7 +269,112 @@ public class OrderServiceImpl implements OrderService {
                 request.reason(),
                 refundAmount,
                 request.comment()));
+        refundItems.forEach(refundItem -> refundItem.setRefund(saved));
+        refundItemRepository.saveAll(refundItems);
         return refundMapper.toResponse(saved);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public RefundResponse findRefund(UUID orderId, UUID userId) {
+        Refund refund = refundRepository.findByOrderId(orderId)
+                .orElseThrow(() -> new NotFoundException(orderId));
+        if (!refund.getUserId().equals(userId)) {
+            throw new AccessDeniedException(userId);
+        }
+        return refundMapper.toResponse(refund);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PageResponse<RefundResponse> getAllRefunds(Pageable pageable) {
+        Page<RefundResponse> page = refundRepository.findAll(pageable)
+                .map(refundMapper::toResponse);
+        return new PageResponse<>(
+                page.getContent(),
+                page.getNumber(),
+                page.getSize(),
+                page.getTotalElements(),
+                page.getTotalPages()
+        );
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<RefundResponse> allRefunds(UUID userId) {
+        List<Refund> refunds = refundRepository.findByUserId(userId);
+        if (refunds.isEmpty()) {
+            throw new NotFoundException(userId);
+        }
+        return refunds
+                .stream()
+                .map(refundMapper::toResponse)
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public RefundResponse findRequestedRefund(UUID orderId, UUID userId) {
+        Refund refund = refundRepository.findByOrderId(orderId)
+                .orElseThrow(() -> new NotFoundException(orderId));
+        if (!refund.getStatus().equals(RefundStatus.REQUESTED)) {
+            throw new InvalidRefundStatusException(orderId);
+        }
+        return refundMapper.toResponse(refund);
+    }
+
+    @Override
+    @Transactional
+    public RefundResponse rejectRefund(UUID orderId, RejectRequest request) {
+        Refund refund = refundRepository.findByOrderId(orderId)
+                .orElseThrow(() -> new NotFoundException(orderId));
+        if (!refund.getStatus().equals(RefundStatus.REQUESTED)) {
+            throw new InvalidRefundStatusException(orderId);
+        }
+        log.info("Reject Reason" + refund.getRejectionReason());
+        refund.setStatus(RefundStatus.REJECTED);
+        refund.setRejectionReason(request.rejectReason());
+        refund.setResolvedAt(Instant.now());
+
+        Order order = orderRepository.findById(orderId).orElseThrow(() -> new NotFoundException(orderId));
+        order.setStatus(OrderStatus.REFUND_REJECTED);
+        order.setUpdatedAt(Instant.now());
+        orderRepository.save(order);
+        return refundMapper.toResponse(refundRepository.save(refund));
+    }
+
+    @Override
+    @Transactional
+    public RefundResponse approveRefund(UUID orderId) {
+        Refund refund = refundRepository.findByOrderId(orderId)
+                .orElseThrow(() -> new NotFoundException(orderId));
+        if (!refund.getStatus().equals(RefundStatus.REQUESTED)) {
+            throw new InvalidRefundStatusException(orderId);
+        }
+        refund.setStatus(RefundStatus.APPROVED);
+        refund.setResolvedAt(Instant.now());
+
+        Order order = orderRepository.findById(orderId).orElseThrow(() -> new NotFoundException(orderId));
+        order.setStatus(OrderStatus.REFUND_APPROVED);
+        order.setUpdatedAt(Instant.now());
+        orderRepository.save(order);
+        try {
+            List<RefundItemEvent> itemEvents = refund.getRefundItems()
+                    .stream()
+                    .map(item -> new RefundItemEvent(item.getProductId(), item.getQuantity(), item.getPrice()))
+                    .toList();
+            RefundApprovedEvent event = new RefundApprovedEvent(
+                    refund.getId(),
+                    refund.getOrderId(),
+                    refund.getUserId(),
+                    refund.getRefundAmount(),
+                    itemEvents);
+            String payload = objectMapper.writeValueAsString(event);
+            outboxEventRepository.save(new OutboxEvent("refund.approved", payload));
+        } catch (JsonProcessingException e) {
+            throw new EventSerializationException(order.getId());
+        }
+        return refundMapper.toResponse(refundRepository.save(refund));
     }
 
     public static boolean isWithin14Days(Instant deliveredAt) {
@@ -287,4 +387,6 @@ public class OrderServiceImpl implements OrderService {
         log.info("isNegative: {}", duration.isNegative());
         return !duration.isNegative() && duration.toDays() <= 14;
     }
+
+
 }

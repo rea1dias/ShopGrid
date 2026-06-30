@@ -47,4 +47,9 @@ public class ApiExceptionHandler {
     public ErrorResponse handleEventSerializationException(EventSerializationException e) {
         return new ErrorResponse(500, e.getMessage(), Instant.now());
     }
+
+    @ExceptionHandler(InvalidRefundStatusException.class)
+    public ErrorResponse handleInvalidRefundStatusException(InvalidRefundStatusException e) {
+        return new ErrorResponse(500, e.getMessage(), Instant.now());
+    }
 }
