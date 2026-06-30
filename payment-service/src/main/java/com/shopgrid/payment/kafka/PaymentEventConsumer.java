@@ -27,4 +27,15 @@ public class PaymentEventConsumer {
             log.error("Failed to deserialize PaymentRequestedEvent: {}", e.getMessage());
         }
     }
+
+    @KafkaListener(topics = "refund.approved", groupId = "payment-service")
+    public void handleRefundApproved(String message) {
+        try {
+            PaymentRequestedEvent event = objectMapper.readValue(message, PaymentRequestedEvent.class);
+            log.info("Approved refund event: {}", event.orderId());
+        } catch (JsonProcessingException e) {
+            log.error("Failed to deserialize PaymentRequestedEvent: {}", e.getMessage());
+        }
+    }
+
 }

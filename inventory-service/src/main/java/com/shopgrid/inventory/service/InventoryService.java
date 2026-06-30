@@ -5,6 +5,7 @@ import com.shopgrid.inventory.domain.dto.response.InventoryResponse;
 import com.shopgrid.inventory.event.OrderCancelledEvent;
 import com.shopgrid.inventory.event.OrderCreatedEvent;
 import com.shopgrid.inventory.event.ProductCreatedEvent;
+import com.shopgrid.inventory.event.RefundApprovedEvent;
 
 import java.util.UUID;
 
@@ -15,6 +16,8 @@ public interface InventoryService {
     void releaseStock(OrderCancelledEvent event);
 
     void createInventory(ProductCreatedEvent event);
+
+    void refundStock(RefundApprovedEvent event);
 
     InventoryResponse add(UUID productId, InventoryUpdateRequest request);
 

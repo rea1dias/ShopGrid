@@ -43,6 +43,7 @@ public class OutboxPoller {
         return switch (eventType) {
             case "stock.reserved" -> "stock.reserved";
             case "stock.failed" -> "stock.failed";
+            case "refund.inventory.completed" -> "refund.inventory.completed";
             default -> throw new IllegalArgumentException("Unknown event type: " + eventType);
         };
     }

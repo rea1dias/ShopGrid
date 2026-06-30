@@ -7,7 +7,6 @@ import com.shopgrid.inventory.domain.entity.Inventory;
 import com.shopgrid.inventory.event.*;
 import com.shopgrid.inventory.exception.InsufficientStockException;
 import com.shopgrid.inventory.exception.NotFoundException;
-import com.shopgrid.inventory.kafka.InventoryEventPublisher;
 import com.shopgrid.inventory.mapper.InventoryMapper;
 import com.shopgrid.inventory.repo.InventoryRepository;
 import com.shopgrid.inventory.repo.OutboxEventRepository;
@@ -26,7 +25,6 @@ import java.util.UUID;
 public class InventoryServiceImpl implements InventoryService {
 
     private final InventoryRepository inventoryRepository;
-    private final InventoryEventPublisher publisher;
     private final InventoryMapper mapper;
     private final ObjectMapper objectMapper;
     private final OutboxEventRepository outboxEventRepository;
@@ -84,6 +82,26 @@ public class InventoryServiceImpl implements InventoryService {
         }
         Inventory inventory = new Inventory(event.productId(), 0, 0);
         inventoryRepository.save(inventory);
+    }
+
+    @Override
+    public void refundStock(RefundApprovedEvent event) {
+        try {
+            for (RefundItemEvent item : event.items()) {
+                Inventory inventory = inventoryRepository.findByProductId(item.productId())
+                        .orElseThrow(() -> new NotFoundException(item.productId()));
+                inventory.setQuantity(inventory.getQuantity() + item.quantity());
+                inventoryRepository.save(inventory);
+            }
+            String payload = objectMapper.writeValueAsString(
+                    new RefundInventoryCompletedEvent(event.refundId(), event.orderId())
+            );
+            outboxEventRepository.save(new OutboxEvent("refund.inventory.completed", payload));
+            log.info("Refunded stock for refundId: {}", event.refundId());
+        } catch (Exception e) {
+            log.error("Failed to refund stock for refundId: {}, error: {}", event.refundId(), e.getMessage());
+        }
+
     }
 
     @Override
