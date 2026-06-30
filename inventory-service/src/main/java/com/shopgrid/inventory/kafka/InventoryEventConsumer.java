@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.shopgrid.inventory.event.OrderCancelledEvent;
 import com.shopgrid.inventory.event.OrderCreatedEvent;
 import com.shopgrid.inventory.event.ProductCreatedEvent;
+import com.shopgrid.inventory.event.RefundApprovedEvent;
 import com.shopgrid.inventory.service.InventoryService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -50,6 +51,17 @@ public class InventoryEventConsumer {
             service.releaseStock(event);
         } catch (JsonProcessingException e) {
             log.error("Failed to deserialize OrderCancelledEvent: {}", e.getMessage());
+        }
+    }
+
+    @KafkaListener(topics = "refund.approved", groupId = "inventory-service")
+    public void handleRefundApproved(String message) {
+        try {
+            RefundApprovedEvent event = objectMapper.readValue(message, RefundApprovedEvent.class);
+            log.info("Refund approved order event: {}", event.orderId());
+            service.refundStock(event);
+        } catch (JsonProcessingException e) {
+            log.error("Failed to deserialize RefundApprovedEvent: {}", e.getMessage());
         }
     }
 }

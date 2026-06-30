@@ -49,4 +49,24 @@ public class PaymentServiceImpl implements PaymentService {
             throw new IllegalStateException("Failed to serialize payment event", e);
         }
     }
+
+    @Override
+    public void refundPayment(RefundApprovedEvent event) {
+        Payment payment = paymentRepository.findByOrderId(event.orderId()).orElseThrow(() -> new IllegalStateException("Payment not found"));
+        if (!payment.getStatus().equals(PaymentStatus.SUCCESS)) {
+            log.warn("Cannot refund payment, status is not SUCCESS for orderId: {}", event.orderId());
+            return;
+        }
+        payment.setStatus(PaymentStatus.REFUNDED);
+        paymentRepository.save(payment);
+        try {
+            PaymentRefundedEvent paymentRefundedEvent = new PaymentRefundedEvent(event.refundId(), event.orderId(), event.userId(), event.refundAmount());
+            String payload = objectMapper.writeValueAsString(paymentRefundedEvent);
+            outboxEventRepository.save(new OutboxEvent("payment.refunded", payload));
+        } catch (JsonProcessingException e) {
+            throw new IllegalStateException("Failed to serialize payment event", e);
+        }
+
+
+    }
 }
