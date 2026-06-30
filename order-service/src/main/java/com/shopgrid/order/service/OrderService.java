@@ -3,12 +3,13 @@ package com.shopgrid.order.service;
 import com.shopgrid.order.common.dto.request.CancelItemRequest;
 import com.shopgrid.order.common.dto.request.OrderRequest;
 import com.shopgrid.order.common.dto.request.RefundRequest;
+import com.shopgrid.order.common.dto.request.RejectRequest;
 import com.shopgrid.order.common.dto.response.OrderResponse;
 import com.shopgrid.order.common.dto.response.OrderStatusHistoryResponse;
+import com.shopgrid.order.common.dto.response.PageResponse;
 import com.shopgrid.order.common.dto.response.RefundResponse;
 import com.shopgrid.order.common.enums.CancelReason;
 import com.shopgrid.order.common.enums.OrderStatus;
-import com.shopgrid.order.common.enums.RefundReason;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -33,6 +34,17 @@ public interface OrderService {
 
     OrderResponse retryPayment(UUID orderId, UUID userId);
 
-    RefundResponse refund(UUID userId, RefundRequest request);
+    RefundResponse createRefund(UUID userId, RefundRequest request);
 
+    RefundResponse findRefund(UUID orderId, UUID userId);
+
+    PageResponse<RefundResponse> getAllRefunds(Pageable pageable);
+
+    List<RefundResponse> allRefunds(UUID userId);
+
+    RefundResponse findRequestedRefund(UUID orderId, UUID userId);
+
+    RefundResponse rejectRefund(UUID orderId, RejectRequest request);
+
+    RefundResponse approveRefund(UUID orderId);
 }

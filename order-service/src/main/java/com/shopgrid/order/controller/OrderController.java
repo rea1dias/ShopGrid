@@ -1,11 +1,9 @@
 package com.shopgrid.order.controller;
 
-import com.shopgrid.order.common.dto.request.CancelItemRequest;
-import com.shopgrid.order.common.dto.request.CancelRequest;
-import com.shopgrid.order.common.dto.request.OrderRequest;
-import com.shopgrid.order.common.dto.request.RefundRequest;
+import com.shopgrid.order.common.dto.request.*;
 import com.shopgrid.order.common.dto.response.OrderResponse;
 import com.shopgrid.order.common.dto.response.OrderStatusHistoryResponse;
+import com.shopgrid.order.common.dto.response.PageResponse;
 import com.shopgrid.order.common.dto.response.RefundResponse;
 import com.shopgrid.order.service.OrderService;
 import jakarta.validation.Valid;
@@ -61,8 +59,38 @@ public class OrderController {
         return ResponseEntity.status(HttpStatus.OK).body(service.retryPayment(orderId, userId));
     }
 
-    @PostMapping("/refund")
-    public ResponseEntity<RefundResponse> refund(@RequestHeader("X-User-Id") UUID userId, @RequestBody RefundRequest request) {
-        return ResponseEntity.status(HttpStatus.OK).body(service.refund(userId, request));
+    @PostMapping("/refunds")
+    public ResponseEntity<RefundResponse> createRefund(@RequestHeader("X-User-Id") UUID userId, @RequestBody RefundRequest request) {
+        return ResponseEntity.status(HttpStatus.OK).body(service.createRefund(userId, request));
+    }
+
+    @GetMapping("/refunds/{orderId}")
+    public ResponseEntity<RefundResponse> getRefund(@PathVariable UUID orderId, @RequestHeader("X-User-Id") UUID userId) {
+        return ResponseEntity.status(HttpStatus.OK).body(service.findRefund(orderId, userId));
+    }
+
+    @GetMapping("/internal/refunds")
+    public ResponseEntity<PageResponse<RefundResponse>> getAllRefunds(Pageable pageable) {
+        return ResponseEntity.status(HttpStatus.OK).body(service.getAllRefunds(pageable));
+    }
+
+    @GetMapping("/internal/refunds/user")
+    public ResponseEntity<List<RefundResponse>> getAllRefundsByUserId(@RequestHeader("X-User-Id") UUID userId) {
+        return ResponseEntity.status(HttpStatus.OK).body(service.allRefunds(userId));
+    }
+
+    @GetMapping("/internal/refunds/{orderId}")
+    public ResponseEntity<RefundResponse> getRequestedRefundByOrderId(@PathVariable UUID orderId, @RequestHeader("X-User-Id") UUID userId) {
+        return ResponseEntity.status(HttpStatus.OK).body(service.findRequestedRefund(orderId, userId));
+    }
+
+    @PostMapping("/internal/refunds/reject/{orderId}")
+    public ResponseEntity<RefundResponse> rejectRefund(@PathVariable UUID orderId, @RequestBody RejectRequest request) {
+        return ResponseEntity.status(HttpStatus.OK).body(service.rejectRefund(orderId, request));
+    }
+
+    @PostMapping("/internal/refunds/approve/{orderId}")
+    public ResponseEntity<RefundResponse> approveRefund(@PathVariable UUID orderId) {
+        return ResponseEntity.status(HttpStatus.OK).body(service.approveRefund(orderId));
     }
 }

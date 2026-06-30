@@ -1,6 +1,9 @@
 spring:
   application:
     name: admin-service
+  jackson:
+    serialization:
+      fail-on-empty-beans: false
 server:
   port: 9001
 
@@ -9,6 +12,9 @@ user-service:
 
 product-service:
   url: ${PRODUCT_SERVICE_URL:http://localhost:8083}
+
+order-service:
+  url: ${ORDER_SERVICE_URL:http://localhost:8084}
 
 management:
   endpoints:
