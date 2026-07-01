@@ -3,6 +3,7 @@ package com.shopgrid.payment.kafka;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.shopgrid.payment.event.PaymentRequestedEvent;
+import com.shopgrid.payment.event.RefundApprovedEvent;
 import com.shopgrid.payment.service.PaymentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,8 +32,9 @@ public class PaymentEventConsumer {
     @KafkaListener(topics = "refund.approved", groupId = "payment-service")
     public void handleRefundApproved(String message) {
         try {
-            PaymentRequestedEvent event = objectMapper.readValue(message, PaymentRequestedEvent.class);
+            RefundApprovedEvent event = objectMapper.readValue(message, RefundApprovedEvent.class);
             log.info("Approved refund event: {}", event.orderId());
+            service.refundPayment(event);
         } catch (JsonProcessingException e) {
             log.error("Failed to deserialize PaymentRequestedEvent: {}", e.getMessage());
         }
