@@ -51,12 +51,10 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
+    @Transactional
     public void refundPayment(RefundApprovedEvent event) {
-        Payment payment = paymentRepository.findByOrderId(event.orderId()).orElseThrow(() -> new IllegalStateException("Payment not found"));
-        if (!payment.getStatus().equals(PaymentStatus.SUCCESS)) {
-            log.warn("Cannot refund payment, status is not SUCCESS for orderId: {}", event.orderId());
-            return;
-        }
+        Payment payment = paymentRepository.findByOrderIdAndStatus(event.orderId(), PaymentStatus.SUCCESS)
+                .orElseThrow(() -> new IllegalStateException("Payment not found"));
         payment.setStatus(PaymentStatus.REFUNDED);
         paymentRepository.save(payment);
         try {
@@ -66,7 +64,5 @@ public class PaymentServiceImpl implements PaymentService {
         } catch (JsonProcessingException e) {
             throw new IllegalStateException("Failed to serialize payment event", e);
         }
-
-
     }
 }

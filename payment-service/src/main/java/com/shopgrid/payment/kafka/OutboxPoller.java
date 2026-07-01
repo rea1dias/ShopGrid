@@ -43,6 +43,7 @@ public class OutboxPoller {
         return switch (eventType) {
             case "payment.completed" -> "payment.completed";
             case "payment.failed" -> "payment.failed";
+            case "payment.refunded" -> "payment.refunded";
             default -> throw new IllegalArgumentException("Unknown event type: " + eventType);
         };
     }

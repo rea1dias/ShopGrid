@@ -1,10 +1,7 @@
 package com.shopgrid.order.kafka;
 
 import com.shopgrid.order.common.enums.OrderStatus;
-import com.shopgrid.order.event.PaymentCompletedEvent;
-import com.shopgrid.order.event.PaymentFailedEvent;
-import com.shopgrid.order.event.StockFailedEvent;
-import com.shopgrid.order.event.StockReservedEvent;
+import com.shopgrid.order.event.*;
 import com.shopgrid.order.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -45,4 +42,12 @@ public class OrderEventConsumer {
         log.info("Received payment failed event: {}", event.orderId());
         service.update(event.orderId(), OrderStatus.PAYMENT_FAILED);
     }
+
+    @KafkaListener(topics = "payment.refunded", groupId = "order-service",
+            properties = {"spring.json.value.default.type=com.shopgrid.order.event.PaymentRefundedEvent"})
+    public void handlePaymentRefunded(PaymentRefundedEvent event) {
+        log.info("Received refunded payment event: {}", event.orderId());
+        service.update(event.orderId(), OrderStatus.REFUND_COMPLETED);
+    }
+
 }
